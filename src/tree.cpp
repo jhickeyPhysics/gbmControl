@@ -6,7 +6,6 @@
 CCARTTree::CCARTTree()
 {
     pRootNode = NULL;
-    pInitialRootNode = NULL;
     dShrink = 1.0;
 }
 
@@ -14,7 +13,6 @@ CCARTTree::CCARTTree()
 CCARTTree::~CCARTTree()
 {
 	delete pRootNode;
-	//delete pInitialRootNode; // Handled by auto_ptr currently
 }
 
 
@@ -33,11 +31,6 @@ void CCARTTree::Reset() {
 
   schWhichNode = 0;
   
-  pNewSplitNode    = NULL;
-  pNewLeftNode     = NULL;
-  pNewRightNode    = NULL;
-  pNewMissingNode  = NULL;
-  pInitialRootNode = NULL;
 }
 
 
@@ -48,19 +41,14 @@ void CCARTTree::Reset() {
 void CCARTTree::grow
 (
  double *adZ,
- const CDataset &data,
+ const CDataset& data,
  const double *adW,
  const double *adF,
- unsigned long nTrain,
- unsigned long nFeatures,
  unsigned long nBagged,
  double dLambda,
- unsigned long cMaxDepth,
  unsigned long cMinObsInNode,
- const bag& afInBag,
  std::vector<unsigned long>& aiNodeAssign,
- CNodeSearch *aNodeSearch,
- VEC_P_NODETERMINAL& vecpTermNodes
+ CNodeSearch *aNodeSearch
 )
 {
 #ifdef NOISY_DEBUG
@@ -68,25 +56,25 @@ void CCARTTree::grow
 #endif
 
 	if((adZ==NULL) || (adW==NULL) || (adF==NULL) ||
-	 (cMaxDepth < 1))
+	 (depthOfTree < 1))
 	{
 	  throw GBM::invalid_argument();
 	}
 
-  dSumZ = 0.0;
-  dSumZ2 = 0.0;
-  dTotalW = 0.0;
+  double dSumZ = 0.0;
+  double dSumZ2 = 0.0;
+  double dTotalW = 0.0;
   
 #ifdef NOISY_DEBUG
   Rprintf("initial tree calcs\n");
 #endif
 
-	for(iObs=0; iObs<nTrain; iObs++)
+	for(long iObs=0; iObs<data.get_trainSize(); iObs++)
 	{
 		// aiNodeAssign tracks to which node each training obs belongs
 		aiNodeAssign[iObs] = 0;
 
-		if(afInBag[iObs])
+		if(data.GetBag()[iObs])
 		{
 			// get the initial sums and sum of squares and total weight
 			dSumZ += adW[iObs]*adZ[iObs];
@@ -96,17 +84,12 @@ void CCARTTree::grow
 	}
 
   dError = dSumZ2-dSumZ*dSumZ/dTotalW;
-  pInitialRootNode = new CNodeContinuous();
-  pInitialRootNode->isTerminal = true;
-  pInitialRootNode->dPrediction = dSumZ/dTotalW;
-  pInitialRootNode->dTrainW = dTotalW;
+  pRootNode = new CNode(dSumZ/dTotalW, dTotalW, true);
 
-  vecpTermNodes.resize(2*cMaxDepth + 1,NULL); // accounts for missing nodes
-  vecpTermNodes[0] = pInitialRootNode;
-  pRootNode = pInitialRootNode;
-  aNodeSearch[0].Set(dSumZ,dTotalW,nBagged,
-		     pInitialRootNode,
-		     &pRootNode);
+
+  vecpTermNodes.resize(2*depthOfTree + 1,NULL); // accounts for missing nodes
+  vecpTermNodes[0] = pRootNode;
+  aNodeSearch[0].Set(dSumZ, dTotalW, nBagged);
   
   // build the tree structure
 #ifdef NOISY_DEBUG
@@ -114,22 +97,16 @@ void CCARTTree::grow
 #endif
   cTotalNodeCount = 1;
   cTerminalNodes = 1;
-  for(cDepth=0; cDepth<cMaxDepth; cDepth++)
+  for(long cDepth=0; cDepth<depthOfTree; cDepth++)
     {
 #ifdef NOISY_DEBUG
       Rprintf("%d ",cDepth);
 #endif
       GetBestSplit(data,
-		   nTrain,
-		   nFeatures,
 		   aNodeSearch,
-		   cTerminalNodes,
 		   aiNodeAssign,
-		   afInBag,
 		   adZ,
-		   adW,
-		   iBestNode,
-		   dBestNodeImprovement);
+		   adW);
       
       if(dBestNodeImprovement == 0.0)
         {
@@ -137,23 +114,17 @@ void CCARTTree::grow
         }
       
       // setup the new nodes and add them to the tree
-      aNodeSearch[iBestNode].SetupNewNodes(pNewSplitNode,
-					   pNewLeftNode,
-					   pNewRightNode,
-					   pNewMissingNode);
+      aNodeSearch[iBestNode].SetupNewNodes(*vecpTermNodes[iBestNode]);
       cTotalNodeCount += 3;
       cTerminalNodes += 2;
-      vecpTermNodes[iBestNode] = pNewLeftNode;
-      vecpTermNodes[cTerminalNodes-2] = pNewRightNode;
-      vecpTermNodes[cTerminalNodes-1] = pNewMissingNode;
-      
+
         // assign observations to the correct node
-      for(iObs=0; iObs < nTrain; iObs++)
+      for(long iObs=0; iObs < data.get_trainSize(); iObs++)
         {
-	  iWhichNode = aiNodeAssign[iObs];
+	  signed char iWhichNode = aiNodeAssign[iObs];
 	  if(iWhichNode==iBestNode)
             {
-	      schWhichNode = pNewSplitNode->WhichNode(data,iObs);
+	      schWhichNode = vecpTermNodes[iBestNode]->WhichNode(data,iObs);
 	      if(schWhichNode == 1) // goes right
                 {
 		  aiNodeAssign[iObs] = cTerminalNodes-2;
@@ -167,24 +138,22 @@ void CCARTTree::grow
         }
       
       // set up the node search for the new right node
-      aNodeSearch[cTerminalNodes-2].Set(aNodeSearch[iBestNode].dBestRightSumZ,
-					aNodeSearch[iBestNode].dBestRightTotalW,
-					aNodeSearch[iBestNode].cBestRightN,
-					pNewRightNode,
-					&(pNewSplitNode->pRightNode));
+      aNodeSearch[cTerminalNodes-2].Set(aNodeSearch[iBestNode].bestSplit.RightWeightResiduals,
+					aNodeSearch[iBestNode].bestSplit.RightTotalWeight,
+					aNodeSearch[iBestNode].bestSplit.RightNumObs);
       // set up the node search for the new missing node
-      aNodeSearch[cTerminalNodes-1].Set(aNodeSearch[iBestNode].dBestMissingSumZ,
-					aNodeSearch[iBestNode].dBestMissingTotalW,
-					aNodeSearch[iBestNode].cBestMissingN,
-					pNewMissingNode,
-					&(pNewSplitNode->pMissingNode));
+      aNodeSearch[cTerminalNodes-1].Set(aNodeSearch[iBestNode].bestSplit.MissingWeightResiduals,
+					aNodeSearch[iBestNode].bestSplit.MissingTotalWeight,
+					aNodeSearch[iBestNode].bestSplit.MissingNumObs);
       // set up the node search for the new left node
       // must be done second since we need info for right node first
-      aNodeSearch[iBestNode].Set(aNodeSearch[iBestNode].dBestLeftSumZ,
-				 aNodeSearch[iBestNode].dBestLeftTotalW,
-				 aNodeSearch[iBestNode].cBestLeftN,
-				 pNewLeftNode,
-				 &(pNewSplitNode->pLeftNode));
+      aNodeSearch[iBestNode].Set(aNodeSearch[iBestNode].bestSplit.LeftWeightResiduals,
+				 aNodeSearch[iBestNode].bestSplit.LeftTotalWeight,
+				 aNodeSearch[iBestNode].bestSplit.LeftNumObs);
+
+      vecpTermNodes[cTerminalNodes-2] = vecpTermNodes[iBestNode]->pRightNode;
+            vecpTermNodes[cTerminalNodes-1] = vecpTermNodes[iBestNode]->pMissingNode;
+            vecpTermNodes[iBestNode] = vecpTermNodes[iBestNode]->pLeftNode;
 
     } // end tree growing
 
@@ -196,16 +165,10 @@ void CCARTTree::grow
 void CCARTTree::GetBestSplit
 (
  const CDataset &data,
- unsigned long nTrain,
- unsigned long nFeatures,
  CNodeSearch *aNodeSearch,
- unsigned long cTerminalNodes,
  std::vector<unsigned long>& aiNodeAssign,
- const bag& afInBag,
  double *adZ,
- const double *adW,
- unsigned long &iBestNode,
- double &dBestNodeImprovement
+ const double *adW
  )
 {
   
@@ -214,7 +177,7 @@ void CCARTTree::GetBestSplit
   unsigned long iWhichObs = 0;
   
   const CDataset::index_vector colNumbers(data.random_order());
-  const CDataset::index_vector::const_iterator final = colNumbers.begin() + nFeatures;
+  const CDataset::index_vector::const_iterator final = colNumbers.begin() + data.get_numFeatures();
   
   for(CDataset::index_vector::const_iterator it=colNumbers.begin();
       it != final;
@@ -229,10 +192,10 @@ void CCARTTree::GetBestSplit
         }
 
       // distribute the observations in order to the correct node search
-      for(iOrderObs=0; iOrderObs < nTrain; iOrderObs++)
+      for(iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
         {
-	  iWhichObs = data.order_ptr()[iVar*nTrain + iOrderObs];
-	  if(afInBag[iWhichObs])
+	  iWhichObs = data.order_ptr()[iVar*data.get_trainSize() + iOrderObs];
+	  if(data.GetBag()[iWhichObs])
             {
 	      const int iNode = aiNodeAssign[iWhichObs];
 	      const double dX = data.x_value(iWhichObs, iVar);
@@ -264,6 +227,7 @@ void CCARTTree::GetBestSplit
             dBestNodeImprovement = aNodeSearch[iNode].BestImprovement();
         }
     }
+
 }
 
 
@@ -322,8 +286,6 @@ void CCARTTree::Adjust
 (
  const std::vector<unsigned long>& aiNodeAssign,
  double *adFadj,
- unsigned long cTrain,
- const VEC_P_NODETERMINAL &vecpTermNodes,
  unsigned long cMinObsInNode
 )
 {
@@ -332,7 +294,7 @@ void CCARTTree::Adjust
   pRootNode->Adjust(cMinObsInNode);
   
   // predict for the training observations
-  for(iObs=0; iObs<cTrain; iObs++)
+  for(iObs=0; iObs<aiNodeAssign.size(); iObs++)
     {
       adFadj[iObs] = vecpTermNodes[aiNodeAssign[iObs]]->dPrediction;
     }

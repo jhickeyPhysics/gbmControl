@@ -8,15 +8,15 @@
 
 CNodeSearch::CNodeSearch()
 {
-    iBestSplitVar = 0;
+    bestSplit.SplitVar = 0;
 
-    dBestSplitValue = 0.0;
+    bestSplit.SplitValue = 0.0;
     fIsSplit = false;
 
-    dBestMissingTotalW = 0.0;
-    dCurrentMissingTotalW = 0.0;
-    dBestMissingSumZ = 0.0;
-    dCurrentMissingSumZ = 0.0;
+    bestSplit.MissingTotalWeight = 0.0;
+    proposedSplit.MissingTotalWeight = 0.0;
+    bestSplit.MissingWeightResiduals = 0.0;
+    proposedSplit.MissingWeightResiduals = 0.0;
 
     adGroupSumZ.resize(1024);
     adGroupW.resize(1024);
@@ -57,14 +57,14 @@ void CNodeSearch::IncorporateObs
 
     if(ISNA(dX))
     {
-        dCurrentMissingSumZ += dWZ;
-        dCurrentMissingTotalW += dW;
-        cCurrentMissingN++;
-        dCurrentRightSumZ -= dWZ;
-        dCurrentRightTotalW -= dW;
-        cCurrentRightN--;
+        proposedSplit.MissingWeightResiduals += dWZ;
+        proposedSplit.MissingTotalWeight += dW;
+        proposedSplit.MissingNumObs++;
+        proposedSplit.RightWeightResiduals -= dWZ;
+        proposedSplit.RightTotalWeight -= dW;
+        proposedSplit.RightNumObs--;
     }
-    else if(cCurrentVarClasses == 0)   // variable is continuous
+    else if(proposedSplit.SplitClass == 0)   // variable is continuous
     {
         if(dLastXValue > dX)
         {
@@ -73,43 +73,43 @@ void CNodeSearch::IncorporateObs
 
         // Evaluate the current split
         // the newest observation is still in the right child
-        dCurrentSplitValue = 0.5*(dLastXValue + dX);
+        proposedSplit.SplitValue = 0.5*(dLastXValue + dX);
         if((dLastXValue != dX) &&
-            (cCurrentLeftN >= cMinObsInNode) &&
-            (cCurrentRightN >= cMinObsInNode) &&
+            (proposedSplit.LeftNumObs >= cMinObsInNode) &&
+            (proposedSplit.RightNumObs >= cMinObsInNode) &&
             ((lMonotone==0) ||
-            (lMonotone*(dCurrentRightSumZ*dCurrentLeftTotalW -
-                        dCurrentLeftSumZ*dCurrentRightTotalW) > 0)))
+            (lMonotone*(proposedSplit.RightWeightResiduals*proposedSplit.LeftTotalWeight -
+                        proposedSplit.LeftWeightResiduals*proposedSplit.RightTotalWeight) > 0)))
         {
-            dCurrentImprovement =
-              Improvement(dCurrentLeftTotalW,dCurrentRightTotalW,
-                                    dCurrentMissingTotalW,
-                                    dCurrentLeftSumZ,dCurrentRightSumZ,
-                                    dCurrentMissingSumZ);
-            if(dCurrentImprovement > dBestImprovement)
+            proposedSplit.ImprovedResiduals =
+              Improvement(proposedSplit.LeftTotalWeight,proposedSplit.RightTotalWeight,
+                                    proposedSplit.MissingTotalWeight,
+                                    proposedSplit.LeftWeightResiduals,proposedSplit.RightWeightResiduals,
+                                    proposedSplit.MissingWeightResiduals);
+            if(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals )
             {
-                iBestSplitVar = iCurrentSplitVar;
-                dBestSplitValue = dCurrentSplitValue;
-                cBestVarClasses = 0;
+                bestSplit.SplitVar = proposedSplit.SplitVar;
+                bestSplit.SplitValue = proposedSplit.SplitValue;
+                bestSplit.SplitClass = 0;
 
-                dBestLeftSumZ    = dCurrentLeftSumZ;
-                dBestLeftTotalW  = dCurrentLeftTotalW;
-                cBestLeftN       = cCurrentLeftN;
-                dBestRightSumZ   = dCurrentRightSumZ;
-                dBestRightTotalW = dCurrentRightTotalW;
-                cBestRightN      = cCurrentRightN;
-                dBestImprovement = dCurrentImprovement;
+                bestSplit.LeftWeightResiduals    = proposedSplit.LeftWeightResiduals;
+                bestSplit.LeftTotalWeight  = proposedSplit.LeftTotalWeight;
+                bestSplit.LeftNumObs       = proposedSplit.LeftNumObs;
+                bestSplit.RightWeightResiduals   = proposedSplit.RightWeightResiduals;
+                bestSplit.RightTotalWeight = proposedSplit.RightTotalWeight;
+                bestSplit.RightNumObs      = proposedSplit.RightNumObs;
+                bestSplit.ImprovedResiduals  = proposedSplit.ImprovedResiduals;
             }
         }
 
         // now move the new observation to the left
         // if another observation arrives we will evaluate this
-        dCurrentLeftSumZ += dWZ;
-        dCurrentLeftTotalW += dW;
-        cCurrentLeftN++;
-        dCurrentRightSumZ -= dWZ;
-        dCurrentRightTotalW -= dW;
-        cCurrentRightN--;
+        proposedSplit.LeftWeightResiduals += dWZ;
+        proposedSplit.LeftTotalWeight += dW;
+        proposedSplit.LeftNumObs++;
+        proposedSplit.RightWeightResiduals -= dWZ;
+        proposedSplit.RightTotalWeight -= dW;
+        proposedSplit.RightNumObs--;
 
         dLastXValue = dX;
     }
@@ -127,47 +127,47 @@ void CNodeSearch::Set
 (
     double dSumZ,
     double dTotalW,
-    unsigned long cTotalN,
-    CNode* pThisNode,
-    CNode** ppParentPointerToThisNode
-)
+    unsigned long cTotalN)
 {
     dInitSumZ = dSumZ;
     dInitTotalW = dTotalW;
     cInitN = cTotalN;
 
-    dBestLeftSumZ       = 0.0;
-    dBestLeftTotalW     = 0.0;
-    cBestLeftN          = 0;
-    dCurrentLeftSumZ    = 0.0;
-    dCurrentLeftTotalW  = 0.0;
-    cCurrentLeftN       = 0;
+    bestSplit.LeftWeightResiduals       = 0.0;
+    bestSplit.LeftTotalWeight     = 0.0;
+    bestSplit.LeftNumObs          = 0;
 
-    dBestRightSumZ      = dSumZ;
-    dBestRightTotalW    = dTotalW;
-    cBestRightN         = cTotalN;
-    dCurrentRightSumZ   = 0.0;
-    dCurrentRightTotalW = dTotalW;
-    cCurrentRightN      = cTotalN;
 
-    dBestMissingSumZ      = 0.0;
-    dBestMissingTotalW    = 0.0;
-    cBestMissingN         = 0;
-    dCurrentMissingSumZ   = 0.0;
-    dCurrentMissingTotalW = 0.0;
-    cCurrentMissingN      = 0;
+    bestSplit.RightWeightResiduals      = dSumZ;
+    bestSplit.RightTotalWeight    = dTotalW;
+    bestSplit.RightNumObs         = cTotalN;
 
-    dBestImprovement    = 0.0;
-    iBestSplitVar       = UINT_MAX;
+    proposedSplit.LeftWeightResiduals = 0.0;
+    proposedSplit.LeftTotalWeight = 0.0;
+    proposedSplit.LeftNumObs = 0;
 
-    dCurrentImprovement = 0.0;
-    iCurrentSplitVar    = UINT_MAX;
-    dCurrentSplitValue  = -HUGE_VAL;
+    proposedSplit.RightWeightResiduals   = 0.0;
+    proposedSplit.RightTotalWeight = dTotalW;
+    proposedSplit.RightNumObs      = cTotalN;
+
+    proposedSplit.MissingWeightResiduals = 0.0;
+    proposedSplit.MissingTotalWeight = 0.0;
+    proposedSplit.MissingNumObs = 0;
+
+    proposedSplit.SplitValue = -HUGE_VAL;
+    proposedSplit.SplitVar = UINT_MAX;
+    proposedSplit.ImprovedResiduals = 0.0;
+
+    bestSplit.MissingWeightResiduals      = 0.0;
+    bestSplit.MissingTotalWeight    = 0.0;
+    bestSplit.MissingNumObs         = 0;
+
+
+    bestSplit.ImprovedResiduals     = 0.0;
+    bestSplit.SplitVar       = UINT_MAX;
 
     fIsSplit = false;
 
-    this->pThisNode = pThisNode;
-    this->ppParentPointerToThisNode = ppParentPointerToThisNode;
 }
 
 
@@ -187,20 +187,19 @@ void CNodeSearch::ResetForNewVar
   std::fill(adGroupW.begin(), adGroupW.begin() + cCurrentVarClasses, 0);
   std::fill(acGroupN.begin(), acGroupN.begin() + cCurrentVarClasses, 0);
   
-  iCurrentSplitVar = iWhichVar;
-  this->cCurrentVarClasses = cCurrentVarClasses;
+  proposedSplit.SplitVar = iWhichVar;
+  this->proposedSplit.SplitClass = cCurrentVarClasses;
 
-  dCurrentLeftSumZ      = 0.0;
-  dCurrentLeftTotalW    = 0.0;
-  cCurrentLeftN         = 0;
-  dCurrentRightSumZ     = dInitSumZ;
-  dCurrentRightTotalW   = dInitTotalW;
-  cCurrentRightN        = cInitN;
-  dCurrentMissingSumZ   = 0.0;
-  dCurrentMissingTotalW = 0.0;
-  cCurrentMissingN      = 0;
-  
-  dCurrentImprovement = 0.0;
+  proposedSplit.LeftWeightResiduals = 0.0;
+  proposedSplit.LeftTotalWeight = 0.0;
+  proposedSplit.LeftNumObs = 0;
+  proposedSplit.RightWeightResiduals = dInitSumZ;
+  proposedSplit.RightTotalWeight = dInitTotalW;
+  proposedSplit.RightNumObs= cInitN;
+  proposedSplit.MissingWeightResiduals = 0.0;
+  proposedSplit.MissingTotalWeight = 0.0;
+  proposedSplit.MissingNumObs = 0;
+  proposedSplit.ImprovedResiduals = 0.0;
   
   dLastXValue = -HUGE_VAL;
 }
@@ -209,19 +208,19 @@ void CNodeSearch::ResetForNewVar
 
 void CNodeSearch::WrapUpCurrentVariable()
 {
-  if(iCurrentSplitVar == iBestSplitVar)
+  if(proposedSplit.SplitVar == bestSplit.SplitVar)
     {
-      if(cCurrentMissingN > 0)
+      if(proposedSplit.MissingNumObs > 0)
         {
-	  dBestMissingSumZ   = dCurrentMissingSumZ;
-	  dBestMissingTotalW = dCurrentMissingTotalW;
-	  cBestMissingN      = cCurrentMissingN;
+	  bestSplit.MissingWeightResiduals   = proposedSplit.MissingWeightResiduals;
+	  bestSplit.MissingTotalWeight = proposedSplit.MissingTotalWeight;
+	  bestSplit.MissingNumObs      = proposedSplit.MissingNumObs;
         }
       else // DEBUG: consider a weighted average with parent node?
         {
-	  dBestMissingSumZ   = dInitSumZ;
-	  dBestMissingTotalW = dInitTotalW;
-	  cBestMissingN      = 0;
+	  bestSplit.MissingWeightResiduals   = dInitSumZ;
+	  bestSplit.MissingTotalWeight = dInitTotalW;
+	  bestSplit.MissingNumObs      = 0;
         }
     }
 }
@@ -235,67 +234,68 @@ void CNodeSearch::EvaluateCategoricalSplit()
   
   if(fIsSplit) return;
   
-  if(cCurrentVarClasses == 0)
+  if(proposedSplit.SplitClass == 0)
     {
       throw GBM::invalid_argument();
     }
 
   cFiniteMeans = 0;
-  for(i=0; i<cCurrentVarClasses; i++)
+  for(i=0; i < proposedSplit.SplitClass; i++)
     {
       aiCurrentCategory[i] = i;
       if(adGroupW[i] != 0.0)
-        {
-	  adGroupMean[i] = adGroupSumZ[i]/adGroupW[i];
-	  cFiniteMeans++;
-        }
+      {
+    	  adGroupMean[i] = adGroupSumZ[i]/adGroupW[i];
+    	  cFiniteMeans++;
+      }
       else
         {
 	  adGroupMean[i] = HUGE_VAL;
         }
     }
   
-  rsort_with_index(&adGroupMean[0],&aiCurrentCategory[0],cCurrentVarClasses);
+  rsort_with_index(&adGroupMean[0],&aiCurrentCategory[0],proposedSplit.SplitClass);
     
   // if only one group has a finite mean it will not consider
   // might be all are missing so no categories enter here
   for(i=0; (cFiniteMeans>1) && ((ULONG)i<cFiniteMeans-1); i++)
     {
-      dCurrentSplitValue = (double)i;
+      proposedSplit.SplitValue = (double)i;
       
-      dCurrentLeftSumZ    += adGroupSumZ[aiCurrentCategory[i]];
-      dCurrentLeftTotalW  += adGroupW[aiCurrentCategory[i]];
-      cCurrentLeftN       += acGroupN[aiCurrentCategory[i]];
-      dCurrentRightSumZ   -= adGroupSumZ[aiCurrentCategory[i]];
-      dCurrentRightTotalW -= adGroupW[aiCurrentCategory[i]];
-      cCurrentRightN      -= acGroupN[aiCurrentCategory[i]];
+      proposedSplit.LeftWeightResiduals    += adGroupSumZ[aiCurrentCategory[i]];
+      proposedSplit.LeftTotalWeight  += adGroupW[aiCurrentCategory[i]];
+      proposedSplit.LeftNumObs       += acGroupN[aiCurrentCategory[i]];
+      proposedSplit.RightWeightResiduals   -= adGroupSumZ[aiCurrentCategory[i]];
+      proposedSplit.RightTotalWeight -= adGroupW[aiCurrentCategory[i]];
+      proposedSplit.RightNumObs      -= acGroupN[aiCurrentCategory[i]];
       
-      dCurrentImprovement =
-	Improvement(dCurrentLeftTotalW,dCurrentRightTotalW,
-			   dCurrentMissingTotalW,
-			   dCurrentLeftSumZ,dCurrentRightSumZ,
-			   dCurrentMissingSumZ);
-      if((cCurrentLeftN >= cMinObsInNode) &&
-	 (cCurrentRightN >= cMinObsInNode) &&
-	 (dCurrentImprovement > dBestImprovement))
+      proposedSplit.ImprovedResiduals =
+	Improvement(proposedSplit.LeftTotalWeight,proposedSplit.RightTotalWeight,
+			   proposedSplit.MissingTotalWeight,
+			   proposedSplit.LeftWeightResiduals,proposedSplit.RightWeightResiduals,
+			   proposedSplit.MissingWeightResiduals);
+      if((proposedSplit.LeftNumObs >= cMinObsInNode) &&
+	 (proposedSplit.RightNumObs >= cMinObsInNode) &&
+	 (proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals ))
         {
-	  dBestSplitValue = dCurrentSplitValue;
-	  if(iBestSplitVar != iCurrentSplitVar)
+	  bestSplit.SplitValue = proposedSplit.SplitValue;
+
+	  if(bestSplit.SplitVar!= proposedSplit.SplitVar)
             {
-	      iBestSplitVar = iCurrentSplitVar;
-	      cBestVarClasses = cCurrentVarClasses;
+	      bestSplit.SplitVar = proposedSplit.SplitVar;
+	      bestSplit.SplitClass = proposedSplit.SplitClass;
 	      std::copy(aiCurrentCategory.begin(),
 			aiCurrentCategory.end(),
 			aiBestCategory.begin());
             }
 	  
-	  dBestLeftSumZ      = dCurrentLeftSumZ;
-	  dBestLeftTotalW    = dCurrentLeftTotalW;
-	  cBestLeftN         = cCurrentLeftN;
-	  dBestRightSumZ     = dCurrentRightSumZ;
-	  dBestRightTotalW   = dCurrentRightTotalW;
-	  cBestRightN        = cCurrentRightN;
-	  dBestImprovement   = dCurrentImprovement;
+	  bestSplit.LeftWeightResiduals      = proposedSplit.LeftWeightResiduals;
+	  bestSplit.LeftTotalWeight    = proposedSplit.LeftTotalWeight;
+	  bestSplit.LeftNumObs         = proposedSplit.LeftNumObs;
+	  bestSplit.RightWeightResiduals     = proposedSplit.RightWeightResiduals;
+	  bestSplit.RightTotalWeight   = proposedSplit.RightTotalWeight;
+	  bestSplit.RightNumObs        = proposedSplit.RightNumObs;
+	  bestSplit.ImprovedResiduals    = proposedSplit.ImprovedResiduals;
         }
     }
 }
@@ -305,64 +305,9 @@ void CNodeSearch::EvaluateCategoricalSplit()
 
 void CNodeSearch::SetupNewNodes
 (
-    CNode* &pNewSplitNode,
-    CNode* &pNewLeftNode,
-    CNode* &pNewRightNode,
-    CNode* &pNewMissingNode
+    CNode& nodeToSplit
 )
 {
-    CNodeContinuous *pNewNodeContinuous = NULL;
-    CNodeCategorical *pNewNodeCategorical = NULL;
-
-    pNewLeftNode    = new CNodeContinuous();
-    pNewRightNode   = new CNodeContinuous();
-    pNewMissingNode = new CNodeContinuous();
-
-    pNewLeftNode->isTerminal = true;
-    pNewRightNode->isTerminal = true;
-    pNewMissingNode->isTerminal = true;
-
-    // set up a continuous split
-    if(cBestVarClasses==0)
-    {
-        pNewNodeContinuous = new CNodeContinuous();
-
-        pNewNodeContinuous->dSplitValue = dBestSplitValue;
-        pNewNodeContinuous->iSplitVar = iBestSplitVar;
-
-        pNewSplitNode = pNewNodeContinuous;
-    }
-    else
-    {
-        // get a new categorical node and its branches
-        pNewNodeCategorical = new CNodeCategorical;
-
-        // set up the categorical split
-        pNewNodeCategorical->iSplitVar = iBestSplitVar;
-        pNewNodeCategorical->aiLeftCategory.resize(1 + (ULONG)dBestSplitValue);
-	std::copy(aiBestCategory.begin(),
-		  aiBestCategory.begin() + pNewNodeCategorical->aiLeftCategory.size(),
-		  pNewNodeCategorical->aiLeftCategory.begin());
-
-        pNewSplitNode = pNewNodeCategorical;
-    }
-
-    *ppParentPointerToThisNode = pNewSplitNode;
-    pNewSplitNode->dPrediction  = pThisNode->dPrediction;
-    pNewSplitNode->dImprovement = dBestImprovement;
-    pNewSplitNode->dTrainW      = pThisNode->dTrainW;
-    pNewSplitNode->pLeftNode    = pNewLeftNode;
-    pNewSplitNode->pRightNode   = pNewRightNode;
-    pNewSplitNode->pMissingNode = pNewMissingNode;
-
-    pNewLeftNode->dPrediction    = dBestLeftSumZ/dBestLeftTotalW;
-    pNewLeftNode->dTrainW        = dBestLeftTotalW;
-    pNewLeftNode->cN             = cBestLeftN;
-    pNewRightNode->dPrediction   = dBestRightSumZ/dBestRightTotalW;
-    pNewRightNode->dTrainW       = dBestRightTotalW;
-    pNewRightNode->cN            = cBestRightN;
-    pNewMissingNode->dPrediction = dBestMissingSumZ/dBestMissingTotalW;
-    pNewMissingNode->dTrainW     = dBestMissingTotalW;
-    pNewMissingNode->cN          = cBestMissingN;
+	nodeToSplit.SplitNode(bestSplit, aiBestCategory);
 
 }

@@ -22,7 +22,6 @@
 #include <algorithm>
 #include <vector>
 #include "dataset.h"
-#include "distribution.h"
 #include "node_search.h"
 #include <ctime>
 
@@ -36,19 +35,14 @@ public:
 
     void Initialize();
     void grow(double *adZ,
-	      const CDataset &pData,
+	      const CDataset& data,
 	      const double *adAlgW,
 	      const double *adF,
-	      unsigned long nTrain,
-	      unsigned long nFeatures,
 	      unsigned long nBagged,
 	      double dLambda,
-	      unsigned long cMaxDepth,
 	      unsigned long cMinObsInNode,
-	      const bag& afInBag,
 	      std::vector<unsigned long>& aiNodeAssign,
-	      CNodeSearch *aNodeSearch,
-	      VEC_P_NODETERMINAL& vecpTermNodes);
+	      CNodeSearch *aNodeSearch);
     void Reset();
 
     void TransferTreeToRList(const CDataset &pData,
@@ -75,8 +69,6 @@ public:
 		 double &dFadj);
     void Adjust(const std::vector<unsigned long>& aiNodeAssign,
 		double *adFadj,
-		unsigned long cTrain,
-		const VEC_P_NODETERMINAL &vecpTermNodes,
 		unsigned long cMinObsInNode);
     
     void GetNodeCount(int &cNodes);
@@ -85,7 +77,9 @@ public:
         this->dShrink = dShrink;
     }
     double GetShrinkage() {return dShrink;}
-
+    long GetDepth(){return depthOfTree;}
+    vector<CNode*> GetTermNodes(){return vecpTermNodes;}
+    void SetDepth(long depth){ depthOfTree = depth;}
     void Print();
     void GetVarRelativeInfluence(double *adRelInf);
 
@@ -93,40 +87,27 @@ public:
     double dError; // total squared error before carrying out the splits
 private:
     void GetBestSplit(const CDataset &pData,
-		      unsigned long nTrain,
-		      unsigned long nFeatures,
 		      CNodeSearch *aNodeSearch,
-		      unsigned long cTerminalNodes,
 		      std::vector<unsigned long>& aiNodeAssign,
-		      const bag& afInBag,
 		      double *adZ,
-		      const double *adW,
-		      unsigned long &iBestNode,
-		      double &dBestNodeImprovement);
+		      const double *adW);
     
-    CNode *pRootNode;
+    // Definition of a tree
+    CNode* pRootNode;
+    vector<CNode*> vecpTermNodes;
+    long depthOfTree;
     double dShrink;
 
+
     // objects used repeatedly
-    unsigned long cDepth;
     unsigned long cTerminalNodes;
     unsigned long cTotalNodeCount;
-    unsigned long iObs;
-    unsigned long iWhichNode;
 
     unsigned long iBestNode;
     double dBestNodeImprovement;
 
-    double dSumZ;
-    double dSumZ2;
-    double dTotalW;
     signed char schWhichNode;
 
-    CNode* pNewSplitNode;
-    CNode* pNewLeftNode;
-    CNode* pNewRightNode;
-    CNode* pNewMissingNode;
-    CNode* pInitialRootNode;
 };
 
 #endif // TREGBM_H

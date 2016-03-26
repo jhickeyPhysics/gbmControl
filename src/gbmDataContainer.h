@@ -33,7 +33,8 @@ public:
 	//----------------------
     CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
             SEXP radWeight, SEXP racVarClasses,
-            SEXP ralMonotoneVar, SEXP radMisc, const std::string& family, int cTrain, int& cGroups);
+            SEXP ralMonotoneVar, SEXP radMisc, const std::string& family,
+            int cTrain, int cFeatures, int& cGroups, double bagFraction);
 
 	//---------------------
 	// Public destructor
@@ -50,14 +51,14 @@ public:
     double ComputeDeviance(const double *adF, CTreeComps* pTreeComp,  bool isValidationSet=false);
     double ComputeBagImprovement(const double* adF, CTreeComps* pTreeComp);
     CDistribution* getDist();
-    const CDataset* getData();
+    CDataset* getData();
 
 
 private:
 	//-------------------
 	// Private Variables
 	//-------------------
-    const CDataset data;
+    CDataset data;
     CDistribution* pDist;
     DistributionFactory* DistFactory; // currently a singleton - does not need to be now - TODO:remove property.
 

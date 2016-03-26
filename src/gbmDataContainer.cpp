@@ -25,9 +25,10 @@
 //-----------------------------------
 CGBMDataContainer::CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
         SEXP radWeight, SEXP racVarClasses,
-        SEXP ralMonotoneVar, SEXP radMisc, const std::string& family, int cTrain, int& cGroups):
+        SEXP ralMonotoneVar, SEXP radMisc, const std::string& family, int cTrain,
+        int cFeatures, int& cGroups, double fractionInBag):
         data(radY, radOffset, radX, raiXOrder,
-    			radWeight, racVarClasses, ralMonotoneVar, cTrain)
+    			radWeight, racVarClasses, ralMonotoneVar, cTrain, cFeatures, cGroups, fractionInBag)
 {
 	cGroups = -1;
 
@@ -113,9 +114,7 @@ void CGBMDataContainer::InitializeFunctionEstimate(double& dInitF, unsigned long
 void CGBMDataContainer::ComputeResiduals(const double* adF, CTreeComps* pTreeComp)
 {
 	pDist->ComputeWorkingResponse(&data, adF,
-	                               	pTreeComp->GetGrad(),
-	                                pTreeComp->GetBag(),
-	                                pTreeComp->GetTrainNo());
+	                               	pTreeComp->GetGrad());
 }
 
 //-----------------------------------
@@ -132,14 +131,8 @@ void CGBMDataContainer::ComputeResiduals(const double* adF, CTreeComps* pTreeCom
 void CGBMDataContainer::ComputeBestTermNodePreds(const double* adF, CTreeComps* pTreeComp, int& cNodes)
 {
 	pDist->FitBestConstant(&data, &adF[0],
-	                         pTreeComp->GetGrad(),
-	                         pTreeComp->GetNodeAssign(),
-	                         pTreeComp->GetTrainNo(),
-	                         pTreeComp->GetTermNodes(),
 	                         (2*cNodes+1)/3, // number of terminal nodes
-	                         pTreeComp->GetMinNodeObs(),
-	                         pTreeComp->GetBag(),
-	                         pTreeComp->GetRespAdj());
+	                         pTreeComp);
 }
 
 //-----------------------------------
@@ -158,11 +151,11 @@ double CGBMDataContainer::ComputeDeviance(const double* adF, CTreeComps* pTreeCo
 {
 	if(!(isValidationSet))
 	{
-		return pDist->Deviance(&data, adF, pTreeComp->GetTrainNo());
+		return pDist->Deviance(&data, adF);
 	}
 	else
 	{
-		return pDist->Deviance(&data, adF + pTreeComp->GetTrainNo(), pTreeComp->GetValidNo(), true);
+		return pDist->Deviance(&data, adF + data.get_trainSize(), true);
 	}
 }
 
@@ -179,11 +172,7 @@ double CGBMDataContainer::ComputeDeviance(const double* adF, CTreeComps* pTreeCo
 //-----------------------------------
 double CGBMDataContainer::ComputeBagImprovement(const double* adF, CTreeComps* pTreeComp)
 {
-	return pDist->BagImprovement(&data, &adF[0],
-            pTreeComp->GetRespAdj(),
-            pTreeComp->GetBag(),
-            pTreeComp->GetLambda(),
-            pTreeComp->GetTrainNo());
+	return pDist->BagImprovement(data, &adF[0], data.GetBag(),  pTreeComp);
 }
 
 //-----------------------------------
@@ -209,7 +198,7 @@ CDistribution* CGBMDataContainer::getDist()
 //
 // Parameters: none
 //-----------------------------------
-const CDataset* CGBMDataContainer::getData()
+CDataset* CGBMDataContainer::getData()
 {
 	return &data;
 }

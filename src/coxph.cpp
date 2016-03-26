@@ -52,9 +52,7 @@ void CCoxPH::ComputeWorkingResponse
 (
 	const CDataset* pData,
     const double *adF,
-    double *adZ,
-    const bag& afInBag,
-    unsigned long nTrain
+    double *adZ
 )
 {
     unsigned long i = 0;
@@ -62,11 +60,11 @@ void CCoxPH::ComputeWorkingResponse
     double dTot = 0.0;
     double dRiskTot = 0.0;
 
-    vecdRiskTot.resize(nTrain);
+    vecdRiskTot.resize(pData->get_trainSize());
     dRiskTot = 0.0;
-    for(i=0; i<nTrain; i++)
+    for(i=0; i<pData->get_trainSize(); i++)
     {
-        if(afInBag[i])
+        if(pData->GetBag()[i])
         {
             dF = adF[i] + ((pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[i]);
             dRiskTot += pData->weight_ptr()[i]*std::exp(dF);
@@ -75,9 +73,9 @@ void CCoxPH::ComputeWorkingResponse
     }
 
     dTot = 0.0;
-    for(i=nTrain-1; i!=ULONG_MAX; i--) // i is unsigned so wraps to ULONG_MAX
+    for(i=pData->get_trainSize()-1; i!=ULONG_MAX; i--) // i is unsigned so wraps to ULONG_MAX
     {
-        if(afInBag[i])
+        if(pData->GetBag()[i])
         {
             if(adDelta[i]==1.0)
             {
@@ -107,7 +105,6 @@ double CCoxPH::Deviance
 (
 	const CDataset* pData,
     const double *adF,
-    unsigned long cLength,
     bool isValidationSet
 )
 {
@@ -117,10 +114,12 @@ double CCoxPH::Deviance
     double dW = 0.0;
     double dTotalAtRisk = 0.0;
 
+    long cLength = pData->get_trainSize();
     if(isValidationSet)
     {
     	pData->shift_to_validation();
     	adDelta = shift_ptr(CDistribution::misc_ptr(false), pData->get_trainSize());
+    	cLength = pData->get_trainSize();
     }
 
     dTotalAtRisk = 0.0; 
@@ -149,14 +148,8 @@ void CCoxPH::FitBestConstant
 (
 	const CDataset* pData,
     const double *adF,
-    double *adZ,
-    const std::vector<unsigned long>& aiNodeAssign,
-    unsigned long nTrain,
-    VEC_P_NODETERMINAL vecpTermNodes,
     unsigned long cTermNodes,
-    unsigned long cMinObsInNode,
-    const bag& afInBag,
-    const double *adFadj
+    CTreeComps* pTreeComps
 )
 {
     double dF = 0.0;
@@ -174,7 +167,7 @@ void CCoxPH::FitBestConstant
     for(i=0; i<cTermNodes; i++)
     {
         veciNode2K[i] = 0;
-        if(vecpTermNodes[i]->cN >= cMinObsInNode)
+        if(pTreeComps->GetTermNodes()[i]->cN >= pTreeComps->GetMinNodeObs())
         {
             veciK2Node[K] = i;
             veciNode2K[i] = K;
@@ -202,12 +195,12 @@ void CCoxPH::FitBestConstant
     //      for identifiability
     dRiskTot = 0.0;
     vecdP.assign(K,0.0);
-    for(i=0; i<nTrain; i++)
+    for(i=0; i<pData->get_trainSize(); i++)
     {
-        if(afInBag[i] && (vecpTermNodes[aiNodeAssign[i]]->cN >= cMinObsInNode))
+        if(pData->GetBagElem(i) && (pTreeComps->GetTermNodes()[pTreeComps->GetNodeAssign()[i]]->cN >= pTreeComps->GetMinNodeObs()))
         {
             dF = adF[i] + ((pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[i]);
-            vecdP[veciNode2K[aiNodeAssign[i]]] += pData->weight_ptr()[i]*std::exp(dF);
+            vecdP[veciNode2K[pTreeComps->GetNodeAssign()[i]]] += pData->weight_ptr()[i]*std::exp(dF);
             dRiskTot += pData->weight_ptr()[i]*std::exp(dF);
 
             if(adDelta[i]==1.0)
@@ -216,7 +209,7 @@ void CCoxPH::FitBestConstant
                 for(k=0; k<K-1; k++)
                 {
                     vecdG[k] +=
-                        pData->weight_ptr()[i]*((aiNodeAssign[i]==veciK2Node[k]) - vecdP[k]/dRiskTot);
+                        pData->weight_ptr()[i]*((pTreeComps->GetNodeAssign()[i]==veciK2Node[k]) - vecdP[k]/dRiskTot);
 
                     matH.getvalue(k,k,dTemp,fTemp);
                     matH.setvalue(k,k,dTemp -
@@ -250,7 +243,7 @@ void CCoxPH::FitBestConstant
 
     for(k=0; k<cTermNodes; k++)
     {
-        vecpTermNodes[k]->dPrediction = 0.0;
+        pTreeComps->GetTermNodes()[k]->dPrediction = 0.0;
     }
     for(m=0; m<K-1; m++)
     {
@@ -259,12 +252,12 @@ void CCoxPH::FitBestConstant
             matH.getvalue(k,m,dTemp,fTemp);
             if(!R_FINITE(dTemp)) // occurs if matH was not invertible
             {
-                vecpTermNodes[veciK2Node[k]]->dPrediction = 0.0;
+                pTreeComps->GetTermNodes()[veciK2Node[k]]->dPrediction = 0.0;
                 break;
             }
             else
             {
-                vecpTermNodes[veciK2Node[k]]->dPrediction -= dTemp*vecdG[m];
+                pTreeComps->GetTermNodes()[veciK2Node[k]]->dPrediction -= dTemp*vecdG[m];
             }
           }
     }
@@ -274,12 +267,10 @@ void CCoxPH::FitBestConstant
 
 double CCoxPH::BagImprovement
 (
-	const CDataset* pData,
+	const CDataset& data,
     const double *adF,
-    const double *adFadj,
     const bag& afInBag,
-    double dStepSize,
-    unsigned long nTrain
+  const CTreeComps* pTreeComps
 )
 {
     double dReturnValue = 0.0;
@@ -291,21 +282,22 @@ double CCoxPH::BagImprovement
 
     dNum = 0.0;
     dDen = 0.0;
-    for(i=0; i<nTrain; i++)
+    for(i=0; i< data.get_trainSize(); i++)
     {
-        if(!afInBag[i])
+        if(!data.GetBagElem(i))
         {
-            dNum += pData->weight_ptr()[i]*std::exp(dF + dStepSize*adFadj[i]);
-            dDen += pData->weight_ptr()[i]*std::exp(dF);
+            dNum += data.weight_ptr()[i]*std::exp(dF + pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]);
+            dDen += data.weight_ptr()[i]*std::exp(dF);
             if(adDelta[i]==1.0)
             {
                 dReturnValue +=
-                    pData->weight_ptr()[i]*(dStepSize*adFadj[i] - std::log(dNum) + log(dDen));
-                dW += pData->weight_ptr()[i];
+                    data.weight_ptr()[i]*(pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i] - std::log(dNum) + log(dDen));
+                dW += data.weight_ptr()[i];
             }
         }
     }
 
+    //std::cout << dReturnValue/dW << endl;
     return dReturnValue/dW;
 }
 

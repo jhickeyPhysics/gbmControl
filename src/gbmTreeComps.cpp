@@ -32,33 +32,17 @@
 //
 //-----------------------------------
 CTreeComps::CTreeComps(double dLambda,
-	    unsigned long cTrain,
-	    unsigned long cFeatures,
 	    double dBagFraction,
 	    unsigned long cDepth,
 	    unsigned long cMinObsInNode,
 	    int cGroups)
 {
 	this-> dLambda = dLambda;
-	this-> cTrain = cTrain;
-	this-> cFeatures = cFeatures;
 	this-> dBagFraction = dBagFraction;
-	this-> cDepth = cDepth;
 	this-> cMinObsInNode = cMinObsInNode;
 	this-> cGroups = cGroups;
 	ptreeTemp.reset(new CCARTTree);
-	cTotalInBag = (unsigned long) (dBagFraction * cTrain);
-	cValid = 0;
-
-	// Ensure initialization makes sense
-	if (cTotalInBag <= 0)
-	{
-	    throw GBM::invalid_argument("you have an empty bag!");
-	}
-	if (cTrain <= 0)
-	{
-	    throw GBM::invalid_argument("you've <= 0 training instances");
-	}
+	ptreeTemp->SetDepth(cDepth);
 
 }
 
@@ -88,46 +72,22 @@ CTreeComps::~CTreeComps()
 //-----------------------------------
 void CTreeComps::TreeInitialize(const CDataset* pData)
 {
-	cValid = pData->nrow() - cTrain;
-	if (pData->nrow() < int(cTrain))
-	{
-	    throw GBM::invalid_argument("your training instances don't make sense");
-	}
 
 	adZ.assign(pData->nrow(), 0);
 	adFadj.assign(pData->nrow(), 0);
 
 	ptreeTemp->Initialize();
 
-	// array for flagging those observations in the bag
-	afInBag.resize(cTrain);
-
 	// aiNodeAssign tracks to which node each training obs belongs
-	aiNodeAssign.resize(cTrain);
+	aiNodeAssign.resize(pData->get_trainSize());
 
 	// NodeSearch objects help decide which nodes to split
-	aNodeSearch.resize(2 * cDepth + 1);
+	aNodeSearch.resize(2 * ptreeTemp->GetDepth() + 1);
 
-	for(unsigned long i=0; i<2*cDepth+1; i++)
+	for(unsigned long i=0; i<2*ptreeTemp->GetDepth()+1; i++)
 	{
 	  aNodeSearch[i].Initialize(cMinObsInNode);
 	}
-	vecpTermNodes.resize(2*cDepth+1, NULL);
-}
-
-//-----------------------------------
-// Function: AssignTermNodes
-//
-// Returns: none
-//
-// Description: assigns null to the terminal nodes
-//
-// Parameters: none
-//
-//-----------------------------------
-void CTreeComps::AssignTermNodes()
-{
-	vecpTermNodes.assign(2*cDepth+1, NULL);
 }
 
 //-----------------------------------
@@ -141,7 +101,7 @@ void CTreeComps::AssignTermNodes()
 //    CDistribution ptr - pointer to the distribution + data
 //
 //-----------------------------------
-void CTreeComps::BagData(bool IsPairwise, CDistribution* pDist)
+void CTreeComps::BagData(bool IsPairwise, const double* misc,  CDataset* pData)
 {
 	unsigned long i = 0;
 	unsigned long cBagged = 0;
@@ -150,20 +110,20 @@ void CTreeComps::BagData(bool IsPairwise, CDistribution* pDist)
 	{
 
 		// regular instance based training
-		for(i=0; i<cTrain && (cBagged < cTotalInBag); i++)
+		for(i=0; i<pData->get_trainSize() && (cBagged < pData->GetTotalInBag()); i++)
 		{
-			if(unif_rand() * (cTrain-i) < cTotalInBag - cBagged)
+			if(unif_rand() * (pData->get_trainSize()-i) < pData->GetTotalInBag() - cBagged)
 			{
-				afInBag[i] = true;
+				pData->SetBagElem(i, true);
 				cBagged++;
 			}
 			else
 			{
-				afInBag[i] = false;
+				 pData->SetBagElem(i, false);
 			}
 		}
 
-		std::fill(afInBag.begin() + i, afInBag.end(), false);
+		pData->FillRemainderOfBag(i);
 	}
 	else
 	{
@@ -180,9 +140,10 @@ void CTreeComps::BagData(bool IsPairwise, CDistribution* pDist)
 			cTotalGroupsInBag = 1;
 		}
 
-		for(i=0; i< cTrain; i++)
+		for(i=0; i< pData->get_trainSize(); i++)
 		{
-			const double dGroup = pDist->misc_ptr(true)[i];
+			const double dGroup = misc[i];
+
 			if(dGroup != dLastGroup)
 			{
 				if (cBaggedGroups >= cTotalGroupsInBag)
@@ -202,17 +163,17 @@ void CTreeComps::BagData(bool IsPairwise, CDistribution* pDist)
 			}
 			if(fChosen)
 			{
-				afInBag[i] = true;
+				pData->SetBagElem(i, true);
 				cBagged++;
 			}
 			else
 			{
-				afInBag[i] = false;
+				pData->SetBagElem(i, false);
 			}
 		}
 
 		// the remainder is not in the bag
-		std::fill(afInBag.begin() + i, afInBag.end(), false);
+		pData->FillRemainderOfBag(i);
 	}
 }
 
@@ -241,16 +202,11 @@ void CTreeComps::GrowTrees(const CDataset* pData, int& cNodes)
 	                *(pData),
 	                pData->weight_ptr(),
 	                &(adFadj[0]),
-	                cTrain,
-	                cFeatures,
-	                cTotalInBag,
+	                pData->GetTotalInBag(),
 	                dLambda,
-	                cDepth,
 	                cMinObsInNode,
-	                afInBag,
 	                aiNodeAssign,
-	                 &(aNodeSearch[0]),
-	                vecpTermNodes);
+	                 &(aNodeSearch[0]));
 
 	#ifdef NOISY_DEBUG
 	  tempTree->Print();
@@ -276,8 +232,6 @@ void CTreeComps::AdjustAndShrink()
 {
 	ptreeTemp->Adjust(aiNodeAssign,
 	                  &(adFadj[0]),
-	                  cTrain,
-	                  vecpTermNodes,
 	                  cMinObsInNode);
 	ptreeTemp->SetShrinkage(dLambda);
 	#ifdef NOISY_DEBUG
@@ -333,22 +287,7 @@ void CTreeComps::TransferTreeToRList(const CDataset &pData,
 //-----------------------------------
 void CTreeComps::PredictValid(const CDataset* pData)
 {
-	ptreeTemp->PredictValid(*(pData), cValid, &(adFadj[0]));
-}
-
-//-----------------------------------
-// Function: GetBag
-//
-// Returns: bag
-//
-// Description: getter for bag
-//
-// Parameters: none
-//
-//-----------------------------------
-bag CTreeComps::GetBag()
-{
-	return afInBag;
+	ptreeTemp->PredictValid(*(pData), pData->GetValidSize(), &(adFadj[0]));
 }
 
 //-----------------------------------
@@ -376,10 +315,11 @@ std::vector<unsigned long> CTreeComps::GetNodeAssign()
 // Parameters: none
 //
 //-----------------------------------
-VEC_P_NODETERMINAL CTreeComps::GetTermNodes()
+vector<CNode*> CTreeComps::GetTermNodes()
 {
-	return vecpTermNodes;
+	return ptreeTemp->GetTermNodes();
 }
+
 
 //-----------------------------------
 // Function: GetGrad
@@ -446,49 +386,9 @@ double CTreeComps::GetLambda()
 	return dLambda;
 }
 
-//-----------------------------------
-// Function: GetTrainNo
-//
-// Returns: unsigned long
-//
-// Description: get number of training examples
-//
-// Parameters: none
-//
-//-----------------------------------
-unsigned long CTreeComps::GetTrainNo()
+const double CTreeComps::GetLambda() const
 {
-	return cTrain;
-}
-
-//-----------------------------------
-// Function: GetValidNo
-//
-// Returns: unsigned long
-//
-// Description: get number of validation examples
-//
-// Parameters: none
-//
-//-----------------------------------
-unsigned long CTreeComps::GetValidNo()
-{
-	return cValid;
-}
-
-//-----------------------------------
-// Function: GetDepth
-//
-// Returns: unsigned long
-//
-// Description: get depth of tree
-//
-// Parameters: none
-//
-//-----------------------------------
-unsigned long CTreeComps::GetDepth()
-{
-	return cDepth;
+	return dLambda;
 }
 
 //-----------------------------------

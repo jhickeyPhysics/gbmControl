@@ -22,6 +22,7 @@
 //------------------------------
 #include <vector>
 #include "dataset.h"
+#include "splitParameters.h"
 #include "buildinfo.h"
 
 
@@ -38,7 +39,8 @@ public:
 	//----------------------
 	// Public Constructors
 	//----------------------
-    CNode();
+    CNode(double nodePrediction,
+    		double trainingWeight, bool terminalFlag=false);
 
 	//---------------------
 	// Public destructor
@@ -59,6 +61,7 @@ public:
 			 double &dFadj);
     void GetVarRelativeInfluence(double *adRelInf);
     void ApplyShrinkage(double dLambda);
+    void SplitNode(SplitParams bestSplit, std::vector<long>& bestCategory);
     virtual void reset()
     {
     	dPrediction = 0;
@@ -68,13 +71,11 @@ public:
     		iSplitVar = 0;
     		dImprovement = 0;
     	}
+    	aiLeftCategory.resize(0);
     }
 
-	//---------------------
-	// Public Functions - Pure Virtual
-	//---------------------
-    virtual void PrintSubtree(unsigned long cIndent) = 0;
-    virtual void TransferTreeToRList(int &iNodeID,
+    void PrintSubtree(unsigned long cIndent);
+    void TransferTreeToRList(int &iNodeID,
 				     const CDataset &data,
 				     int *aiSplitVar,
 				     double *adSplitPoint,
@@ -86,28 +87,36 @@ public:
 				     double *adPred,
 				     VEC_VEC_CATEGORIES &vecSplitCodes,
 				     int cCatSplitsOld,
-				     double dShrinkage)=0;
-    virtual signed char WhichNode(const CDataset &data,
-                             unsigned long iObs)=0;
-    virtual signed char WhichNode(double *adX,
-                             unsigned long cRow,
-                             unsigned long cCol,
-                             unsigned long iRow)=0;
+				     double dShrinkage);
+	signed char WhichNode(const CDataset &data,
+							unsigned long iObs);
+	signed char WhichNode(double *adX,
+							 unsigned long cRow,
+							 unsigned long cCol,
+							 unsigned long iRow);
 
 	//---------------------
 	// Public Variables
 	//---------------------
-	CNode *pLeftNode;
-	CNode *pRightNode;
-	CNode *pMissingNode;
+	// Pointers to the Node's children
+	CNode* pLeftNode;
+	CNode* pRightNode;
+	CNode* pMissingNode;
 
 	unsigned long iSplitVar;
 	double dImprovement;
-	double dPrediction;
 
+	// Properties defining the node
+	double dPrediction;
 	double dTrainW;   // total training weight in node
-	unsigned long cN; // number of training observations in node
+	long cN; // number of training observations in node
+
 	bool isTerminal;
+	bool isContinuous;
+
+	// VARIABLES USED IN NODE SPLITTING
+	std::vector<unsigned long> aiLeftCategory;
+    double dSplitValue;
 };
 
 #endif // __node_h__

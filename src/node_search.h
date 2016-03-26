@@ -20,8 +20,7 @@
 #include <vector>
 #include "dataset.h"
 #include "node.h"
-#include "node_continuous.h"
-#include "node_categorical.h"
+#include "splitParameters.h"
 
 using namespace std;
 
@@ -40,9 +39,7 @@ public:
 
     void Set(double dSumZ,
 	     double dTotalW,
-	     unsigned long cTotalN,
-	     CNode* pThisNode,
-	     CNode **ppParentPointerToThisNode);
+	     unsigned long cTotalN);
     void ResetForNewVar(unsigned long iWhichVar,
 			long cVarClasses);
     
@@ -78,77 +75,39 @@ public:
             return dResult;
         }
 
-    double BestImprovement() { return dBestImprovement; }
+    double BestImprovement() { return bestSplit.ImprovedResiduals ; }
     void SetToSplit()
     {
         fIsSplit = true;
     };
-    void SetupNewNodes(CNode* &pNewSplitNode,
-		       CNode* &pNewLeftNode,
-		       CNode* &pNewRightNode,
-		       CNode* &pNewMissingNode);
+    void SetupNewNodes(CNode& nodeToSplit);
 
     void EvaluateCategoricalSplit();
     void WrapUpCurrentVariable();
-    double ThisNodePrediction() {return pThisNode->dPrediction;}
-    bool operator<(const CNodeSearch &ns) {return dBestImprovement<ns.dBestImprovement;}
-
-    unsigned long iBestSplitVar;
-    double dBestSplitValue;
-
-    double dBestLeftSumZ;
-    double dBestLeftTotalW;
-    unsigned long cBestLeftN;
-
-    double dBestRightSumZ;
-    double dBestRightTotalW;
-    unsigned long cBestRightN;
-
-    double dBestMissingSumZ;
-    double dBestMissingTotalW;
-    unsigned long cBestMissingN;
-
-    double dCurrentMissingSumZ;
-    double dCurrentMissingTotalW;
-    unsigned long cCurrentMissingN;
-
-    long cCurrentVarClasses;
 
     double dInitTotalW;
     double dInitSumZ;
     unsigned long cInitN;
-    double dBestImprovement;
+    SplitParams bestSplit;
 
 private:
+    // Split Parameters
+    SplitParams proposedSplit;
+
     bool fIsSplit;
 
     unsigned long cMinObsInNode;
-
-    long cBestVarClasses;
-
-    double dCurrentLeftSumZ;
-    double dCurrentLeftTotalW;
-    unsigned long cCurrentLeftN;
-    double dCurrentRightSumZ;
-    double dCurrentRightTotalW;
-    unsigned long cCurrentRightN;
-    double dCurrentImprovement;
-    unsigned long iCurrentSplitVar;
-    double dCurrentSplitValue;
-
     double dLastXValue;
 
     std::vector<double> adGroupSumZ;
     std::vector<double> adGroupW;
     std::vector<unsigned long> acGroupN;
     std::vector<double> adGroupMean;
-    // this is an int to fit in with R API
-    // it's probably best not to ask.
-    std::vector<int> aiCurrentCategory;
-    std::vector<unsigned long> aiBestCategory;
 
-    CNode* pThisNode;
-    CNode **ppParentPointerToThisNode;
+    // Has to be int for r_sort_index
+    std::vector<int> aiCurrentCategory;
+    std::vector<long> aiBestCategory;
+
 };
 
 #endif // NODESEARCH_H

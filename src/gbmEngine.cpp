@@ -25,11 +25,12 @@ CGBM::~CGBM()
 void CGBM::SetDataAndDistribution(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
         SEXP radWeight, SEXP racVarClasses,
         SEXP ralMonotoneVar, SEXP radMisc, const std::string& family,
-		const int cTrain, int& cGroups)
+		const int cTrain, const int cFeatures, int& cGroups, double bagFraction)
 {
 
 	pDataCont=new CGBMDataContainer(radY, radOffset, radX, raiXOrder,
-        radWeight, racVarClasses, ralMonotoneVar, radMisc, family, cTrain, cGroups);
+	        radWeight, racVarClasses, ralMonotoneVar, radMisc, family,
+	        cTrain, cFeatures, cGroups, bagFraction);
 	hasDataAndDist = true;
 }
 
@@ -41,7 +42,7 @@ void CGBM::SetTreeContainer(double dLambda,
    	    unsigned long cMinObsInNode,
    	    int cGroups)
 {
-	pTreeComp = new CTreeComps(dLambda, cTrain, cFeatures,dBagFraction,
+	pTreeComp = new CTreeComps(dLambda,dBagFraction,
 	    	  cDepth, cMinObsInNode, cGroups);
 	hasTreeContainer = true;
 }
@@ -76,9 +77,18 @@ void CGBM::Iterate
   dTrainError = 0.0;
   dValidError = 0.0;
   dOOBagImprove = 0.0;
+  
+  if(IsPairwise())
+  {
+	  pTreeComp->BagData(IsPairwise(), pDataCont->getDist()->misc_ptr(true), pDataCont->getData());
 
-  pTreeComp->AssignTermNodes();
-  pTreeComp->BagData(IsPairwise(), pDataCont->getDist());
+  }
+  else
+  {
+	  pTreeComp->BagData(IsPairwise(), pDataCont->getDist()->misc_ptr(false), pDataCont->getData());
+
+  }
+
 
 #ifdef NOISY_DEBUG
   Rprintf("Compute working response\n");
@@ -102,7 +112,7 @@ void CGBM::Iterate
 
   // update the training predictions
   unsigned long i = 0;
-  for(i=0; i < pTreeComp->GetTrainNo(); i++)
+  for(i=0; i < pDataCont->getData()->get_trainSize(); i++)
   {
     adF[i] += pTreeComp->GetLambda() * pTreeComp->RespAdjElem(i);
   }
@@ -110,7 +120,9 @@ void CGBM::Iterate
 
   // update the validation predictions
   pTreeComp->PredictValid(pDataCont->getData());
-  for(i=pTreeComp->GetTrainNo(); i < pTreeComp->GetTrainNo()+pTreeComp->GetValidNo(); i++)
+  for(i=pDataCont->getData()->get_trainSize();
+	  i < pDataCont->getData()->get_trainSize()+pDataCont->getData()->GetValidSize();
+	  i++)
   {
     adF[i] += pTreeComp->RespAdjElem(i);
   }
