@@ -57,12 +57,7 @@ void CNodeSearch::IncorporateObs
 
     if(ISNA(dX))
     {
-        proposedSplit.MissingWeightResiduals += dWZ;
-        proposedSplit.MissingTotalWeight += dW;
-        proposedSplit.MissingNumObs++;
-        proposedSplit.RightWeightResiduals -= dWZ;
-        proposedSplit.RightTotalWeight -= dW;
-        proposedSplit.RightNumObs--;
+        proposedSplit.UpdateMissingNode(dWZ, dW);
     }
     else if(proposedSplit.SplitClass == 0)   // variable is continuous
     {
@@ -75,42 +70,19 @@ void CNodeSearch::IncorporateObs
         // the newest observation is still in the right child
         proposedSplit.SplitValue = 0.5*(dLastXValue + dX);
         if((dLastXValue != dX) &&
-            (proposedSplit.LeftNumObs >= cMinObsInNode) &&
-            (proposedSplit.RightNumObs >= cMinObsInNode) &&
-            ((lMonotone==0) ||
-            (lMonotone*(proposedSplit.RightWeightResiduals*proposedSplit.LeftTotalWeight -
-                        proposedSplit.LeftWeightResiduals*proposedSplit.RightTotalWeight) > 0)))
+            proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
+            proposedSplit.SplitIsCorrMonotonic(lMonotone))
         {
-            proposedSplit.ImprovedResiduals =
-              Improvement(proposedSplit.LeftTotalWeight,proposedSplit.RightTotalWeight,
-                                    proposedSplit.MissingTotalWeight,
-                                    proposedSplit.LeftWeightResiduals,proposedSplit.RightWeightResiduals,
-                                    proposedSplit.MissingWeightResiduals);
+        	proposedSplit.NodeGradResiduals();
             if(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals )
             {
-                bestSplit.SplitVar = proposedSplit.SplitVar;
-                bestSplit.SplitValue = proposedSplit.SplitValue;
-                bestSplit.SplitClass = 0;
-
-                bestSplit.LeftWeightResiduals    = proposedSplit.LeftWeightResiduals;
-                bestSplit.LeftTotalWeight  = proposedSplit.LeftTotalWeight;
-                bestSplit.LeftNumObs       = proposedSplit.LeftNumObs;
-                bestSplit.RightWeightResiduals   = proposedSplit.RightWeightResiduals;
-                bestSplit.RightTotalWeight = proposedSplit.RightTotalWeight;
-                bestSplit.RightNumObs      = proposedSplit.RightNumObs;
-                bestSplit.ImprovedResiduals  = proposedSplit.ImprovedResiduals;
+            	bestSplit = proposedSplit;
             }
         }
 
         // now move the new observation to the left
         // if another observation arrives we will evaluate this
-        proposedSplit.LeftWeightResiduals += dWZ;
-        proposedSplit.LeftTotalWeight += dW;
-        proposedSplit.LeftNumObs++;
-        proposedSplit.RightWeightResiduals -= dWZ;
-        proposedSplit.RightTotalWeight -= dW;
-        proposedSplit.RightNumObs--;
-
+        proposedSplit.UpdateLeftNode(dWZ, dW);
         dLastXValue = dX;
     }
     else // variable is categorical, evaluates later
@@ -188,7 +160,7 @@ void CNodeSearch::ResetForNewVar
   std::fill(acGroupN.begin(), acGroupN.begin() + cCurrentVarClasses, 0);
   
   proposedSplit.SplitVar = iWhichVar;
-  this->proposedSplit.SplitClass = cCurrentVarClasses;
+  proposedSplit.SplitClass = cCurrentVarClasses;
 
   proposedSplit.LeftWeightResiduals = 0.0;
   proposedSplit.LeftTotalWeight = 0.0;
@@ -212,15 +184,15 @@ void CNodeSearch::WrapUpCurrentVariable()
     {
       if(proposedSplit.MissingNumObs > 0)
         {
-	  bestSplit.MissingWeightResiduals   = proposedSplit.MissingWeightResiduals;
-	  bestSplit.MissingTotalWeight = proposedSplit.MissingTotalWeight;
-	  bestSplit.MissingNumObs      = proposedSplit.MissingNumObs;
+		  bestSplit.MissingWeightResiduals   = proposedSplit.MissingWeightResiduals;
+		  bestSplit.MissingTotalWeight = proposedSplit.MissingTotalWeight;
+		  bestSplit.MissingNumObs      = proposedSplit.MissingNumObs;
         }
       else // DEBUG: consider a weighted average with parent node?
         {
-	  bestSplit.MissingWeightResiduals   = dInitSumZ;
-	  bestSplit.MissingTotalWeight = dInitTotalW;
-	  bestSplit.MissingNumObs      = 0;
+		  bestSplit.MissingWeightResiduals   = dInitSumZ;
+		  bestSplit.MissingTotalWeight = dInitTotalW;
+		  bestSplit.MissingNumObs      = 0;
         }
     }
 }
@@ -261,34 +233,33 @@ void CNodeSearch::EvaluateCategoricalSplit()
   for(i=0; (cFiniteMeans>1) && ((ULONG)i<cFiniteMeans-1); i++)
     {
       proposedSplit.SplitValue = (double)i;
+      proposedSplit.UpdateLeftNode(adGroupSumZ[aiCurrentCategory[i]], adGroupW[aiCurrentCategory[i]],
+    		  	  	  	  	  	  acGroupN[aiCurrentCategory[i]]);
+
       
-      proposedSplit.LeftWeightResiduals    += adGroupSumZ[aiCurrentCategory[i]];
+     /* proposedSplit.LeftWeightResiduals    += adGroupSumZ[aiCurrentCategory[i]];
       proposedSplit.LeftTotalWeight  += adGroupW[aiCurrentCategory[i]];
       proposedSplit.LeftNumObs       += acGroupN[aiCurrentCategory[i]];
       proposedSplit.RightWeightResiduals   -= adGroupSumZ[aiCurrentCategory[i]];
       proposedSplit.RightTotalWeight -= adGroupW[aiCurrentCategory[i]];
-      proposedSplit.RightNumObs      -= acGroupN[aiCurrentCategory[i]];
+      proposedSplit.RightNumObs      -= acGroupN[aiCurrentCategory[i]];*/
       
-      proposedSplit.ImprovedResiduals =
-	Improvement(proposedSplit.LeftTotalWeight,proposedSplit.RightTotalWeight,
-			   proposedSplit.MissingTotalWeight,
-			   proposedSplit.LeftWeightResiduals,proposedSplit.RightWeightResiduals,
-			   proposedSplit.MissingWeightResiduals);
-      if((proposedSplit.LeftNumObs >= cMinObsInNode) &&
-	 (proposedSplit.RightNumObs >= cMinObsInNode) &&
+      proposedSplit.NodeGradResiduals();
+
+      if(proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
 	 (proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals ))
         {
 	  bestSplit.SplitValue = proposedSplit.SplitValue;
-
 	  if(bestSplit.SplitVar!= proposedSplit.SplitVar)
-            {
-	      bestSplit.SplitVar = proposedSplit.SplitVar;
-	      bestSplit.SplitClass = proposedSplit.SplitClass;
+	  {
+		  bestSplit.SplitVar = proposedSplit.SplitVar;
+
+		bestSplit.SplitClass = proposedSplit.SplitClass;
 	      std::copy(aiCurrentCategory.begin(),
 			aiCurrentCategory.end(),
 			aiBestCategory.begin());
-            }
-	  
+	  }
+
 	  bestSplit.LeftWeightResiduals      = proposedSplit.LeftWeightResiduals;
 	  bestSplit.LeftTotalWeight    = proposedSplit.LeftTotalWeight;
 	  bestSplit.LeftNumObs         = proposedSplit.LeftNumObs;
