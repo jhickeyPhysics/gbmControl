@@ -64,6 +64,7 @@ public:
 		 unsigned long cCol,
 		 unsigned long iRow,
 		 double &dFadj);
+
     void Adjust(const std::vector<unsigned long>& aiNodeAssign,
 		double *adFadj,
 		unsigned long cMinObsInNode);
@@ -83,11 +84,6 @@ public:
 
     double dError; // total squared error before carrying out the splits
 private:
-    void GetBestSplit(const CDataset &pData,
-		      CNodeSearch *aNodeSearch,
-		      std::vector<unsigned long>& aiNodeAssign,
-		      double *adZ,
-		      const double *adW);
     
     // Definition of a tree
     CNode* pRootNode;

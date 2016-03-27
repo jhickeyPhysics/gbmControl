@@ -16,10 +16,9 @@ CCARTTree::~CCARTTree()
 }
 
 
-void CCARTTree::Initialize
-(
-)
+void CCARTTree::Initialize()
 {
+
 }
 
 
@@ -99,16 +98,68 @@ void CCARTTree::grow
 #ifdef NOISY_DEBUG
       Rprintf("%d ",cDepth);
 #endif
-      GetBestSplit(data,
-		   aNodeSearch,
-		   aiNodeAssign,
-		   adZ,
-		   data.weight_ptr());
       
-      if(dBestNodeImprovement == 0.0)
+      unsigned long iNode = 0;
+      unsigned long iOrderObs = 0;
+      unsigned long iWhichObs = 0;
+
+      const CDataset::index_vector colNumbers(data.random_order());
+      const CDataset::index_vector::const_iterator final = colNumbers.begin() + data.get_numFeatures();
+
+      // Loop over nodes
+      for(iNode = 0; iNode < cTerminalNodes; iNode++)
       {
-    	  break;
-      }
+    	  // Loop over variables
+    	  for(CDataset::index_vector::const_iterator it=colNumbers.begin();
+    			  it != final;
+    			  it++)
+    	  {
+    		  aNodeSearch[iNode].ResetForNewVar(*it, data.varclass(*it));
+
+
+    		  // Loop over observations
+    		  for(iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
+    		  {
+    			  //Get Observation
+    			  iWhichObs = data.order_ptr()[(*it)*data.get_trainSize() + iOrderObs];
+				  if(aiNodeAssign[iWhichObs] == iNode && data.GetBag()[iWhichObs])
+				  {
+					  const double dX = data.x_value(iWhichObs, *it);
+					  aNodeSearch[iNode].IncorporateObs(dX,
+									adZ[iWhichObs],
+									data.weight_ptr()[iWhichObs],
+									data.monotone(*it));
+				  }
+
+    		  }
+
+			  if(data.varclass(*it) != 0) // evaluate if categorical split
+			  {
+				  aNodeSearch[iNode].EvaluateCategoricalSplit();
+			  }
+			  aNodeSearch[iNode].WrapUpCurrentVariable();
+
+		  }
+	  }
+
+	// search for the best split
+	iBestNode = 0;
+	dBestNodeImprovement = 0.0;
+	for(iNode=0; iNode<cTerminalNodes; iNode++)
+	{
+		aNodeSearch[iNode].SetToSplit();
+		if(aNodeSearch[iNode].BestImprovement() > dBestNodeImprovement)
+		{
+			iBestNode = iNode;
+			dBestNodeImprovement = aNodeSearch[iNode].BestImprovement();
+		}
+	}
+
+
+	if(dBestNodeImprovement == 0.0)
+	{
+	  break;
+	}
       
       // setup the new nodes and add them to the tree
       aNodeSearch[iBestNode].SetupNewNodes(*vecpTermNodes[iBestNode]);
@@ -151,76 +202,6 @@ void CCARTTree::grow
     // DEBUG
     // Print();
 }
-
-
-void CCARTTree::GetBestSplit
-(
- const CDataset &data,
- CNodeSearch *aNodeSearch,
- std::vector<unsigned long>& aiNodeAssign,
- double *adZ,
- const double *adW
- )
-{
-  
-  unsigned long iNode = 0;
-  unsigned long iOrderObs = 0;
-  unsigned long iWhichObs = 0;
-  
-  const CDataset::index_vector colNumbers(data.random_order());
-  const CDataset::index_vector::const_iterator final = colNumbers.begin() + data.get_numFeatures();
-  
-  for(CDataset::index_vector::const_iterator it=colNumbers.begin();
-      it != final;
-      it++)
-    {
-      const int iVar = *it;
-      const int cVarClasses = data.varclass(iVar);
-      
-      for(iNode=0; iNode < cTerminalNodes; iNode++)
-        {
-	  aNodeSearch[iNode].ResetForNewVar(iVar, cVarClasses);
-        }
-
-      // distribute the observations in order to the correct node search
-      for(iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
-        {
-	  iWhichObs = data.order_ptr()[iVar*data.get_trainSize() + iOrderObs];
-	  if(data.GetBag()[iWhichObs])
-            {
-	      const int iNode = aiNodeAssign[iWhichObs];
-	      const double dX = data.x_value(iWhichObs, iVar);
-	      aNodeSearch[iNode].IncorporateObs(dX,
-						adZ[iWhichObs],
-						adW[iWhichObs],
-						data.monotone(iVar));
-            }
-        }
-        for(iNode=0; iNode<cTerminalNodes; iNode++)
-        {
-            if(cVarClasses != 0) // evaluate if categorical split
-            {
-	      aNodeSearch[iNode].EvaluateCategoricalSplit();
-            }
-            aNodeSearch[iNode].WrapUpCurrentVariable();
-        }
-    }
-
-    // search for the best split
-    iBestNode = 0;
-    dBestNodeImprovement = 0.0;
-    for(iNode=0; iNode<cTerminalNodes; iNode++)
-    {
-        aNodeSearch[iNode].SetToSplit();
-        if(aNodeSearch[iNode].BestImprovement() > dBestNodeImprovement)
-        {
-            iBestNode = iNode;
-            dBestNodeImprovement = aNodeSearch[iNode].BestImprovement();
-        }
-    }
-
-}
-
 
 void CCARTTree::GetNodeCount
 (
