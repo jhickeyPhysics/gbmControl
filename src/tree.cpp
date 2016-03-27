@@ -93,32 +93,28 @@ void CCARTTree::grow
 #endif
   cTotalNodeCount = 1;
   cTerminalNodes = 1;
-  for(long cDepth=0; cDepth<depthOfTree; cDepth++)
+  for(long cDepth=0; cDepth < depthOfTree; cDepth++)
   {
 #ifdef NOISY_DEBUG
       Rprintf("%d ",cDepth);
 #endif
       
-      unsigned long iNode = 0;
-      unsigned long iOrderObs = 0;
       unsigned long iWhichObs = 0;
-
       const CDataset::index_vector colNumbers(data.random_order());
       const CDataset::index_vector::const_iterator final = colNumbers.begin() + data.get_numFeatures();
 
-      // Loop over nodes
-      for(iNode = 0; iNode < cTerminalNodes; iNode++)
+      // Loop over terminal nodes
+      for(long iNode = 0; iNode < cTerminalNodes; iNode++)
       {
     	  // Loop over variables
     	  for(CDataset::index_vector::const_iterator it=colNumbers.begin();
     			  it != final;
     			  it++)
     	  {
+
     		  aNodeSearch[iNode].ResetForNewVar(*it, data.varclass(*it));
-
-
     		  // Loop over observations
-    		  for(iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
+    		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
     		  {
     			  //Get Observation
     			  iWhichObs = data.order_ptr()[(*it)*data.get_trainSize() + iOrderObs];
@@ -138,14 +134,13 @@ void CCARTTree::grow
 				  aNodeSearch[iNode].EvaluateCategoricalSplit();
 			  }
 			  aNodeSearch[iNode].WrapUpCurrentVariable();
-
 		  }
 	  }
 
 	// search for the best split
 	iBestNode = 0;
 	dBestNodeImprovement = 0.0;
-	for(iNode=0; iNode<cTerminalNodes; iNode++)
+	for(long iNode=0; iNode < cTerminalNodes; iNode++)
 	{
 		aNodeSearch[iNode].SetToSplit();
 		if(aNodeSearch[iNode].BestImprovement() > dBestNodeImprovement)
@@ -154,7 +149,6 @@ void CCARTTree::grow
 			dBestNodeImprovement = aNodeSearch[iNode].BestImprovement();
 		}
 	}
-
 
 	if(dBestNodeImprovement == 0.0)
 	{
@@ -184,6 +178,7 @@ void CCARTTree::grow
 	      // those to the left stay with the same node assignment
 	  	  }
       }
+
 
       // set up the node search for the new right node
       aNodeSearch[cTerminalNodes-2].Set(*(vecpTermNodes[iBestNode]->pRightNode));

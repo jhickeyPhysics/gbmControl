@@ -20,7 +20,7 @@
 //#include "laplace.h"
 //#include "pairwise.h"
 //#include "poisson.h"
-//#include "quantile.h"
+#include "quantile.h"
 //#include "tdist.h"
 //#include "tweedie.h"
 #include <stdexcept>
@@ -51,7 +51,7 @@ DistributionFactory::DistributionFactory()
 	//RegisterDist("laplace", &CLaplace::Create);
 	//RegisterDist("pairwise", &CPairwise::Create);
 	//RegisterDist("poisson", &CPoisson::Create);
-	//RegisterDist("quantile", &CQuantile::Create);
+	RegisterDist("quantile", &CQuantile::Create);
 	//RegisterDist("tdist", &CTDist::Create);
 	//RegisterDist("tweedie", &CTweedie::Create);
 }
