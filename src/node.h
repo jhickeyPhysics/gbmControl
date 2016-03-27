@@ -40,7 +40,7 @@ public:
 	// Public Constructors
 	//----------------------
     CNode(double nodePrediction,
-    		double trainingWeight, bool terminalFlag=false);
+    		double trainingWeight, long numObs, bool terminalFlag=false);
 
 	//---------------------
 	// Public destructor

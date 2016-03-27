@@ -42,10 +42,7 @@ void CCARTTree::grow
 (
  double *adZ,
  const CDataset& data,
- const double *adW,
  const double *adF,
- unsigned long nBagged,
- double dLambda,
  unsigned long cMinObsInNode,
  std::vector<unsigned long>& aiNodeAssign,
  CNodeSearch *aNodeSearch
@@ -55,7 +52,7 @@ void CCARTTree::grow
   Rprintf("Growing tree\n");
 #endif
 
-	if((adZ==NULL) || (adW==NULL) || (adF==NULL) ||
+	if((adZ==NULL) || (data.weight_ptr()==NULL) || (adF==NULL) ||
 	 (depthOfTree < 1))
 	{
 	  throw GBM::invalid_argument();
@@ -77,19 +74,19 @@ void CCARTTree::grow
 		if(data.GetBag()[iObs])
 		{
 			// get the initial sums and sum of squares and total weight
-			dSumZ += adW[iObs]*adZ[iObs];
-			dSumZ2 += adW[iObs]*adZ[iObs]*adZ[iObs];
-			dTotalW += adW[iObs];
+			dSumZ += data.weight_ptr()[iObs]*adZ[iObs];
+			dSumZ2 += data.weight_ptr()[iObs]*adZ[iObs]*adZ[iObs];
+			dTotalW += data.weight_ptr()[iObs];
 		}
 	}
 
   dError = dSumZ2-dSumZ*dSumZ/dTotalW;
-  pRootNode = new CNode(dSumZ/dTotalW, dTotalW, true);
+  pRootNode = new CNode(dSumZ/dTotalW, dTotalW, data.GetTotalInBag(), true);
 
 
   vecpTermNodes.resize(2*depthOfTree + 1,NULL); // accounts for missing nodes
   vecpTermNodes[0] = pRootNode;
-  aNodeSearch[0].Set(dSumZ, dTotalW, nBagged);
+  aNodeSearch[0].Set(*pRootNode);
   
   // build the tree structure
 #ifdef NOISY_DEBUG
@@ -98,7 +95,7 @@ void CCARTTree::grow
   cTotalNodeCount = 1;
   cTerminalNodes = 1;
   for(long cDepth=0; cDepth<depthOfTree; cDepth++)
-    {
+  {
 #ifdef NOISY_DEBUG
       Rprintf("%d ",cDepth);
 #endif
@@ -106,12 +103,12 @@ void CCARTTree::grow
 		   aNodeSearch,
 		   aiNodeAssign,
 		   adZ,
-		   adW);
+		   data.weight_ptr());
       
       if(dBestNodeImprovement == 0.0)
-        {
-	  break;
-        }
+      {
+    	  break;
+      }
       
       // setup the new nodes and add them to the tree
       aNodeSearch[iBestNode].SetupNewNodes(*vecpTermNodes[iBestNode]);
@@ -120,40 +117,34 @@ void CCARTTree::grow
 
         // assign observations to the correct node
       for(long iObs=0; iObs < data.get_trainSize(); iObs++)
-        {
+      {
 	  signed char iWhichNode = aiNodeAssign[iObs];
 	  if(iWhichNode==iBestNode)
-            {
+	  {
 	      schWhichNode = vecpTermNodes[iBestNode]->WhichNode(data,iObs);
 	      if(schWhichNode == 1) // goes right
-                {
-		  aiNodeAssign[iObs] = cTerminalNodes-2;
-                }
+	      {
+	    	  aiNodeAssign[iObs] = cTerminalNodes-2;
+	      }
 	      else if(schWhichNode == 0) // is missing
-                {
-		  aiNodeAssign[iObs] = cTerminalNodes-1;
-                }
+	      {
+	    	  aiNodeAssign[iObs] = cTerminalNodes-1;
+	      }
 	      // those to the left stay with the same node assignment
-            }
-        }
-      
+	  	  }
+      }
+
       // set up the node search for the new right node
-      aNodeSearch[cTerminalNodes-2].Set(aNodeSearch[iBestNode].bestSplit.RightWeightResiduals,
-					aNodeSearch[iBestNode].bestSplit.RightTotalWeight,
-					aNodeSearch[iBestNode].bestSplit.RightNumObs);
+      aNodeSearch[cTerminalNodes-2].Set(*(vecpTermNodes[iBestNode]->pRightNode));
       // set up the node search for the new missing node
-      aNodeSearch[cTerminalNodes-1].Set(aNodeSearch[iBestNode].bestSplit.MissingWeightResiduals,
-					aNodeSearch[iBestNode].bestSplit.MissingTotalWeight,
-					aNodeSearch[iBestNode].bestSplit.MissingNumObs);
+      aNodeSearch[cTerminalNodes-1].Set(*(vecpTermNodes[iBestNode]->pMissingNode));
       // set up the node search for the new left node
       // must be done second since we need info for right node first
-      aNodeSearch[iBestNode].Set(aNodeSearch[iBestNode].bestSplit.LeftWeightResiduals,
-				 aNodeSearch[iBestNode].bestSplit.LeftTotalWeight,
-				 aNodeSearch[iBestNode].bestSplit.LeftNumObs);
+      aNodeSearch[iBestNode].Set(*(vecpTermNodes[iBestNode]->pLeftNode));
 
       vecpTermNodes[cTerminalNodes-2] = vecpTermNodes[iBestNode]->pRightNode;
-            vecpTermNodes[cTerminalNodes-1] = vecpTermNodes[iBestNode]->pMissingNode;
-            vecpTermNodes[iBestNode] = vecpTermNodes[iBestNode]->pLeftNode;
+      vecpTermNodes[cTerminalNodes-1] = vecpTermNodes[iBestNode]->pMissingNode;
+      vecpTermNodes[iBestNode] = vecpTermNodes[iBestNode]->pLeftNode;
 
     } // end tree growing
 

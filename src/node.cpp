@@ -3,14 +3,19 @@
 #include "node.h"
 
 CNode::CNode(double nodePrediction,
-		double trainingWeight, bool terminalFlag):aiLeftCategory()
+		double trainingWeight, long numObs, bool terminalFlag):aiLeftCategory()
 {
     dPrediction = nodePrediction;
     dTrainW = trainingWeight;
     isTerminal = terminalFlag;
     isContinuous = true;
-    cN = 0;
+    cN = numObs;
+
+    dSplitValue = 0.0;
     iSplitVar = 0;
+    dImprovement = 0.0;
+
+    // Set children to NULL
 	pLeftNode = NULL;
 	pRightNode = NULL;
 	pMissingNode = NULL;
@@ -250,13 +255,12 @@ void CNode::SplitNode(SplitParams bestSplit, std::vector<long>& bestCategory)
 	}
 
 	dImprovement = bestSplit.ImprovedResiduals ;
-	pLeftNode    = new CNode(bestSplit.LeftWeightResiduals/bestSplit.LeftTotalWeight, bestSplit.LeftTotalWeight, true);
-	pRightNode   = new CNode(bestSplit.RightWeightResiduals/bestSplit.RightTotalWeight, bestSplit.RightTotalWeight, true);
-	pMissingNode = new CNode(bestSplit.MissingWeightResiduals/bestSplit.MissingTotalWeight, bestSplit.MissingTotalWeight, true);
-
-	pLeftNode->cN  = bestSplit.LeftNumObs;
-	pRightNode->cN = bestSplit.RightNumObs;
-	pMissingNode->cN = bestSplit.MissingNumObs;
+	pLeftNode    = new CNode(bestSplit.LeftWeightResiduals/bestSplit.LeftTotalWeight, bestSplit.LeftTotalWeight,
+								bestSplit.LeftNumObs, true);
+	pRightNode   = new CNode(bestSplit.RightWeightResiduals/bestSplit.RightTotalWeight,
+							bestSplit.RightTotalWeight, bestSplit.RightNumObs, true);
+	pMissingNode = new CNode(bestSplit.MissingWeightResiduals/bestSplit.MissingTotalWeight,
+							bestSplit.MissingTotalWeight, bestSplit.MissingNumObs, true);
 
 }
 

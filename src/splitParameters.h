@@ -10,6 +10,11 @@
 #define __splitParameters_h__
 
 //------------------------------
+// Includes
+//------------------------------
+#include <Rcpp.h>
+
+//------------------------------
 // Class Definition
 //------------------------------
 class SplitParams
@@ -28,6 +33,8 @@ public:
 	//---------------------
 	// Public Functions
 	//---------------------
+	void ResetSplitProperties(double weightedResiduals, double trainingWeight, long numObs,
+							 double splitValue = -HUGE_VAL, long variableClasses=0, long splitVar = UINT_MAX);
 	void UpdateMissingNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
 	void UpdateLeftNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
 	bool SplitIsCorrMonotonic(long specifyMonotone);

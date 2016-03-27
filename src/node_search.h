@@ -37,44 +37,10 @@ public:
 			double dW,
 			long lMonotone);
 
-    void Set(double dSumZ,
-	     double dTotalW,
-	     unsigned long cTotalN);
+    void Set(CNode& nodeToSplit);
     void ResetForNewVar(unsigned long iWhichVar,
 			long cVarClasses);
     
-    static double Improvement
-        (
-            double dLeftW,
-            double dRightW,
-            double dMissingW,
-            double dLeftSum,
-            double dRightSum,
-            double dMissingSum
-        )
-        {
-            double dTemp = 0.0;
-            double dResult = 0.0;
-
-            if(dMissingW == 0.0)
-            {
-                dTemp = dLeftSum/dLeftW - dRightSum/dRightW;
-                dResult = dLeftW*dRightW*dTemp*dTemp/(dLeftW+dRightW);
-            }
-            else
-            {
-                dTemp = dLeftSum/dLeftW - dRightSum/dRightW;
-                dResult += dLeftW*dRightW*dTemp*dTemp;
-                dTemp = dLeftSum/dLeftW - dMissingSum/dMissingW;
-                dResult += dLeftW*dMissingW*dTemp*dTemp;
-                dTemp = dRightSum/dRightW - dMissingSum/dMissingW;
-                dResult += dRightW*dMissingW*dTemp*dTemp;
-                dResult /= (dLeftW + dRightW + dMissingW);
-            }
-
-            return dResult;
-        }
-
     double BestImprovement() { return bestSplit.ImprovedResiduals ; }
     void SetToSplit()
     {

@@ -10,6 +10,28 @@ SplitParams::~SplitParams()
 
 }
 
+void SplitParams::ResetSplitProperties(double weightedResiduals, double trainingWeight,
+									   long numObs, double splitValue, long variableClasses, long splitVar)
+{
+		RightWeightResiduals   = weightedResiduals;
+		RightTotalWeight = trainingWeight;
+		RightNumObs     = numObs;
+
+		LeftWeightResiduals   = 0.0;
+		LeftTotalWeight = 0.0;
+		LeftNumObs     = 0;
+
+		MissingWeightResiduals   = 0.0;
+		MissingTotalWeight = 0.0;
+		MissingNumObs     = 0;
+
+		SplitVar = splitVar;
+		SplitValue = splitValue;
+		ImprovedResiduals = 0.0;
+		SplitClass = variableClasses;
+
+}
+
 
 void SplitParams::UpdateMissingNode(double predIncrement, double trainWIncrement, long numIncrement)
 {

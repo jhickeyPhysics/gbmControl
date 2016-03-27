@@ -36,10 +36,7 @@ public:
     void Initialize();
     void grow(double *adZ,
 	      const CDataset& data,
-	      const double *adAlgW,
 	      const double *adF,
-	      unsigned long nBagged,
-	      double dLambda,
 	      unsigned long cMinObsInNode,
 	      std::vector<unsigned long>& aiNodeAssign,
 	      CNodeSearch *aNodeSearch);

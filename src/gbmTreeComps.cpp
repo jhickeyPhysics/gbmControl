@@ -200,10 +200,7 @@ void CTreeComps::GrowTrees(const CDataset* pData, int& cNodes)
 
 	ptreeTemp->grow(&(adZ[0]),
 	                *(pData),
-	                pData->weight_ptr(),
 	                &(adFadj[0]),
-	                pData->GetTotalInBag(),
-	                dLambda,
 	                cMinObsInNode,
 	                aiNodeAssign,
 	                 &(aNodeSearch[0]));
