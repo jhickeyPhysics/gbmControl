@@ -38,11 +38,12 @@ public:
 	      const double *adF,
 	      unsigned long cMinObsInNode,
 	      std::vector<unsigned long>& aiNodeAssign,
-	      CNodeSearch *aNodeSearch);
+	      CNodeSearch& aNodeSearch);
     void Reset();
 
     CNode* GetRootNode();
     const CNode* GetRootNode() const;
+
     void PredictValid(const CDataset &pData,
 		      unsigned long nValid,
 		      double *adFadj);

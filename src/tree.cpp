@@ -32,7 +32,7 @@ void CCARTTree::grow
  const double *adF,
  unsigned long cMinObsInNode,
  std::vector<unsigned long>& aiNodeAssign,
- CNodeSearch *aNodeSearch
+ CNodeSearch& aNodeSearch
 )
 {
 #ifdef NOISY_DEBUG
@@ -71,7 +71,6 @@ void CCARTTree::grow
   pRootNode = new CNode(dSumZ/dTotalW, dTotalW, data.GetTotalInBag(), true);
   vecpTermNodes.resize(2*depthOfTree + 1,NULL); // accounts for missing nodes
   vecpTermNodes[0] = pRootNode;
-  aNodeSearch[0].Set(*pRootNode);
 
   // build the tree structure
 #ifdef NOISY_DEBUG
@@ -92,14 +91,14 @@ void CCARTTree::grow
       // Loop over terminal nodes
       for(long iNode = 0; iNode < cTerminalNodes; iNode++)
       {
-    	  aNodeSearch[0].Set(*vecpTermNodes[iNode]);
+    	  aNodeSearch.Set(*vecpTermNodes[iNode]);
     	  // Loop over variables
     	  for(CDataset::index_vector::const_iterator it=colNumbers.begin();
     			  it != final;
     			  it++)
     	  {
 
-    		  aNodeSearch[0].ResetForNewVar(*it, data.varclass(*it));
+    		  aNodeSearch.ResetForNewVar(*it, data.varclass(*it));
     		  // Loop over observations
     		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
     		  {
@@ -108,7 +107,7 @@ void CCARTTree::grow
 				  if(aiNodeAssign[iWhichObs] == iNode && data.GetBag()[iWhichObs])
 				  {
 					  const double dX = data.x_value(iWhichObs, *it);
-					  aNodeSearch[0].IncorporateObs(dX,
+					  aNodeSearch.IncorporateObs(dX,
 									adZ[iWhichObs],
 									data.weight_ptr()[iWhichObs],
 									data.monotone(*it));
@@ -118,13 +117,13 @@ void CCARTTree::grow
 
 			  if(data.varclass(*it) != 0) // evaluate if categorical split
 			  {
-				  aNodeSearch[0].EvaluateCategoricalSplit();
+				  aNodeSearch.EvaluateCategoricalSplit();
 			  }
-			  aNodeSearch[0].WrapUpCurrentVariable();
+			  aNodeSearch.WrapUpCurrentVariable();
 		  }
 
     	  // Assign best split to node
-    	  aNodeSearch[0].AssignToNode(*vecpTermNodes[iNode]);
+    	  aNodeSearch.AssignToNode(*vecpTermNodes[iNode]);
 	  }
 
 	// search for the best split
@@ -132,7 +131,6 @@ void CCARTTree::grow
 	double dBestNodeImprovement = 0.0;
 	for(long iNode=0; iNode < cTerminalNodes; iNode++)
 	{
-		aNodeSearch[0].SetToSplit();
 		if(vecpTermNodes[iNode]->SplitImprovement() > dBestNodeImprovement)
 		{
 			iBestNode = iNode;

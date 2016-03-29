@@ -74,14 +74,7 @@ void CTreeComps::TreeInitialize(const CDataset* pData)
 
 	// aiNodeAssign tracks to which node each training obs belongs
 	aiNodeAssign.resize(pData->get_trainSize());
-
-	// NodeSearch objects help decide which nodes to split
-	aNodeSearch.resize(2 * ptreeTemp->GetDepth() + 1);
-
-	for(unsigned long i=0; i<2*ptreeTemp->GetDepth()+1; i++)
-	{
-	  aNodeSearch[i].Initialize(cMinObsInNode);
-	}
+	aNodeSearch.Initialize(cMinObsInNode);
 }
 
 
@@ -111,7 +104,7 @@ void CTreeComps::GrowTrees(const CDataset* pData, int& cNodes)
 	                &(adFadj[0]),
 	                cMinObsInNode,
 	                aiNodeAssign,
-	                 &(aNodeSearch[0]));
+	                 aNodeSearch);
 
 	#ifdef NOISY_DEBUG
 	  tempTree->Print();

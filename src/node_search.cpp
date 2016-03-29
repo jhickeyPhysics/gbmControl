@@ -103,7 +103,7 @@ void CNodeSearch::Set(CNode nodeToSplit)
 
     bestSplit.ResetSplitProperties(dInitSumZ, dInitTotalW, cInitN);
     proposedSplit.ResetSplitProperties(0.0, dInitTotalW, cInitN);
-    fIsSplit = false;
+    fIsSplit = !nodeToSplit.isTerminal;
 
 }
 
@@ -219,10 +219,7 @@ void CNodeSearch::EvaluateCategoricalSplit()
 
 
 
-void CNodeSearch::SetupNewNodes
-(
-    CNode& nodeToSplit
-)
+void CNodeSearch::SetupNewNodes(CNode& nodeToSplit)
 {
 	nodeToSplit.SplitNode();
 
