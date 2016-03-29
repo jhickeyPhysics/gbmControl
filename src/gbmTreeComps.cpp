@@ -76,8 +76,6 @@ void CTreeComps::TreeInitialize(const CDataset* pData)
 	adZ.assign(pData->nrow(), 0);
 	adFadj.assign(pData->nrow(), 0);
 
-	ptreeTemp->Initialize();
-
 	// aiNodeAssign tracks to which node each training obs belongs
 	aiNodeAssign.resize(pData->get_trainSize());
 
@@ -258,18 +256,28 @@ void CTreeComps::TransferTreeToRList(const CDataset &pData,
 	     VEC_VEC_CATEGORIES &vecSplitCodes,
 	     int cCatSplitsOld)
 {
-	ptreeTemp -> TransferTreeToRList(pData,
-				 aiSplitVar,
-				 adSplitPoint,
-				 aiLeftNode,
-				 aiRightNode,
-				 aiMissingNode,
-				 adErrorReduction,
-				 adWeight,
-				 adPred,
-				 vecSplitCodes,
-				 cCatSplitsOld,
-				 dLambda);
+	int iNodeID = 0;
+
+	if(ptreeTemp->GetRootNode())
+	{
+		ptreeTemp->GetRootNode()->TransferTreeToRList(iNodeID,
+													   pData,
+													   aiSplitVar,
+													   adSplitPoint,
+													   aiLeftNode,
+													   aiRightNode,
+													   aiMissingNode,
+													   adErrorReduction,
+													   adWeight,
+													   adPred,
+													   vecSplitCodes,
+													   cCatSplitsOld,
+													   dLambda);
+	}
+	else
+	{
+	  throw GBM::failure("Can't transfer to list - RootNode does not exist.");
+	}
 }
 
 //-----------------------------------

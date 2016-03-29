@@ -33,7 +33,6 @@ public:
     CCARTTree();
     ~CCARTTree();
 
-    void Initialize();
     void grow(double *adZ,
 	      const CDataset& data,
 	      const double *adF,
@@ -42,19 +41,8 @@ public:
 	      CNodeSearch *aNodeSearch);
     void Reset();
 
-    void TransferTreeToRList(const CDataset &pData,
-			     int *aiSplitVar,
-			     double *adSplitPoint,
-			     int *aiLeftNode,
-			     int *aiRightNode,
-			     int *aiMissingNode,
-			     double *adErrorReduction,
-			     double *adWeight,
-			     double *adPred,
-			     VEC_VEC_CATEGORIES &vecSplitCodes,
-			     int cCatSplitsOld,
-			     double dShrinkage);
-
+    CNode* GetRootNode();
+    const CNode* GetRootNode() const;
     void PredictValid(const CDataset &pData,
 		      unsigned long nValid,
 		      double *adFadj);
@@ -74,15 +62,11 @@ public:
     {
         this->dShrink = dShrink;
     }
-    double GetShrinkage() {return dShrink;}
     long GetDepth(){return depthOfTree;}
     vector<CNode*> GetTermNodes(){return vecpTermNodes;}
     void SetDepth(long depth){ depthOfTree = depth;}
     void Print();
-    void GetVarRelativeInfluence(double *adRelInf);
 
-
-    double dError; // total squared error before carrying out the splits
 private:
     
     // Definition of a tree
@@ -90,16 +74,8 @@ private:
     vector<CNode*> vecpTermNodes;
     long depthOfTree;
     double dShrink;
-
-
-    // objects used repeatedly
-    unsigned long cTerminalNodes;
+    double dError; // total squared error before carrying out the splits
     unsigned long cTotalNodeCount;
-
-    unsigned long iBestNode;
-    double dBestNodeImprovement;
-
-    signed char schWhichNode;
 
 };
 

@@ -224,6 +224,13 @@ void CNodeSearch::SetupNewNodes
     CNode& nodeToSplit
 )
 {
-	nodeToSplit.SplitNode(bestSplit, aiBestCategory);
+	nodeToSplit.SplitNode();
 
+}
+
+
+void CNodeSearch::AssignToNode(CNode& terminalNode)
+{
+	terminalNode.childrenParams =  bestSplit;
+	terminalNode.splitCategory = aiBestCategory;
 }

@@ -60,21 +60,9 @@ public:
 			 unsigned long iRow,
 			 double &dFadj);
     void GetVarRelativeInfluence(double *adRelInf);
-    void ApplyShrinkage(double dLambda);
-    void SplitNode(SplitParams bestSplit, std::vector<long>& bestCategory);
-    virtual void reset()
-    {
-    	dPrediction = 0;
-    	if(!isTerminal)
-    	{
-    		pLeftNode = pRightNode = pMissingNode = 0;
-    		iSplitVar = 0;
-    		dImprovement = 0;
-    	}
-    	aiLeftCategory.resize(0);
-    }
-
+    void SplitNode();
     void PrintSubtree(unsigned long cIndent);
+    double SplitImprovement(){ return childrenParams.ImprovedResiduals;}
     void TransferTreeToRList(int &iNodeID,
 				     const CDataset &data,
 				     int *aiSplitVar,
@@ -103,6 +91,10 @@ public:
 	CNode* pRightNode;
 	CNode* pMissingNode;
 
+	// Splitting parameters
+	SplitParams childrenParams;
+
+	// This nodes parameters
 	unsigned long iSplitVar;
 	double dImprovement;
 
@@ -116,6 +108,7 @@ public:
 
 	// VARIABLES USED IN NODE SPLITTING
 	std::vector<unsigned long> aiLeftCategory;
+	std::vector<int> splitCategory;
     double dSplitValue;
 };
 

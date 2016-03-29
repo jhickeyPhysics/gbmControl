@@ -47,7 +47,7 @@ public:
         fIsSplit = true;
     };
     void SetupNewNodes(CNode& nodeToSplit);
-
+    void AssignToNode(CNode& terminalNode);
     void EvaluateCategoricalSplit();
     void WrapUpCurrentVariable();
 
@@ -71,8 +71,9 @@ private:
     std::vector<double> adGroupMean;
 
     // Has to be int for r_sort_index
+    // Make both int?
     std::vector<int> aiCurrentCategory;
-    std::vector<long> aiBestCategory;
+    std::vector<int> aiBestCategory;
 
 };
 

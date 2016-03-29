@@ -15,21 +15,9 @@ CCARTTree::~CCARTTree()
 	delete pRootNode;
 }
 
-
-void CCARTTree::Initialize()
+void CCARTTree::Reset()
 {
-
-}
-
-
-void CCARTTree::Reset() {
   delete pRootNode;
-  
-  iBestNode = 0;
-  dBestNodeImprovement = 0.0;
-
-  schWhichNode = 0;
-  
 }
 
 
@@ -90,7 +78,7 @@ void CCARTTree::grow
   Rprintf("Building tree 1 ");
 #endif
   cTotalNodeCount = 1;
-  cTerminalNodes = 1;
+  long cTerminalNodes = 1;
   for(long cDepth=0; cDepth < depthOfTree; cDepth++)
   {
 #ifdef NOISY_DEBUG
@@ -133,18 +121,21 @@ void CCARTTree::grow
 			  }
 			  aNodeSearch[iNode].WrapUpCurrentVariable();
 		  }
+
+    	  // Assign best split to node
+    	  aNodeSearch[iNode].AssignToNode(*vecpTermNodes[iNode]);
 	  }
 
 	// search for the best split
-	iBestNode = 0;
-	dBestNodeImprovement = 0.0;
+	long iBestNode = 0;
+	double dBestNodeImprovement = 0.0;
 	for(long iNode=0; iNode < cTerminalNodes; iNode++)
 	{
 		aNodeSearch[iNode].SetToSplit();
-		if(aNodeSearch[iNode].BestImprovement() > dBestNodeImprovement)
+		if(vecpTermNodes[iNode]->SplitImprovement() > dBestNodeImprovement)
 		{
 			iBestNode = iNode;
-			dBestNodeImprovement = aNodeSearch[iNode].BestImprovement();
+			dBestNodeImprovement = vecpTermNodes[iNode]->SplitImprovement();
 		}
 	}
 
@@ -154,7 +145,7 @@ void CCARTTree::grow
 	}
       
       // setup the new nodes and add them to the tree
-      aNodeSearch[iBestNode].SetupNewNodes(*vecpTermNodes[iBestNode]);
+      vecpTermNodes[iBestNode]->SplitNode();
       cTotalNodeCount += 3;
       cTerminalNodes += 2;
 
@@ -162,10 +153,11 @@ void CCARTTree::grow
         // assign observations to the correct node
       for(long iObs=0; iObs < data.get_trainSize(); iObs++)
       {
-	  signed char iWhichNode = aiNodeAssign[iObs];
+    	  signed char iWhichNode = aiNodeAssign[iObs];
+
 	  if(iWhichNode==iBestNode)
 	  {
-	      schWhichNode = vecpTermNodes[iBestNode]->WhichNode(data,iObs);
+	      signed char schWhichNode = vecpTermNodes[iBestNode]->WhichNode(data,iObs);
 	      if(schWhichNode == 1) // goes right
 	      {
 	    	  aiNodeAssign[iObs] = cTerminalNodes-2;
@@ -190,19 +182,13 @@ void CCARTTree::grow
 	  vecpTermNodes[cTerminalNodes-1] = vecpTermNodes[iBestNode]->pMissingNode;
 	  vecpTermNodes[iBestNode] = vecpTermNodes[iBestNode]->pLeftNode;
 
-
-
-
     } // end tree growing
 
     // DEBUG
     // Print();
 }
 
-void CCARTTree::GetNodeCount
-(
-    int &cNodes
-)
+void CCARTTree::GetNodeCount(int &cNodes)
 {
     cNodes = cTotalNodeCount;
 }
@@ -280,59 +266,13 @@ void CCARTTree::Print()
 }
 
 
-
-void CCARTTree::GetVarRelativeInfluence
-(
-    double *adRelInf
-)
+CNode* CCARTTree::GetRootNode()
 {
-  if(pRootNode)
-    {
-      pRootNode->GetVarRelativeInfluence(adRelInf);
-    }
+	return pRootNode;
 }
-
-
-
-void CCARTTree::TransferTreeToRList
-(
-    const CDataset &data,
-    int *aiSplitVar,
-    double *adSplitPoint,
-    int *aiLeftNode,
-    int *aiRightNode,
-    int *aiMissingNode,
-    double *adErrorReduction,
-    double *adWeight,
-    double *adPred,
-    VEC_VEC_CATEGORIES &vecSplitCodes,
-    int cCatSplitsOld,
-    double dShrinkage
-)
+const CNode* CCARTTree::GetRootNode() const
 {
-
-    int iNodeID = 0;
-
-    if(pRootNode)
-    {
-        pRootNode->TransferTreeToRList(iNodeID,
-				       data,
-				       aiSplitVar,
-				       adSplitPoint,
-				       aiLeftNode,
-				       aiRightNode,
-				       aiMissingNode,
-				       adErrorReduction,
-				       adWeight,
-				       adPred,
-				       vecSplitCodes,
-				       cCatSplitsOld,
-				       dShrinkage);
-    }
-    else
-    {
-      throw GBM::failure();
-    }
+	return pRootNode;
 }
 
 
