@@ -35,15 +35,10 @@ void CGBM::SetDataAndDistribution(SEXP radY, SEXP radOffset, SEXP radX, SEXP rai
 }
 
 void CGBM::SetTreeContainer(double dLambda,
-   	    unsigned long cTrain,
-   	    unsigned long cFeatures,
-   	    double dBagFraction,
    	    unsigned long cDepth,
-   	    unsigned long cMinObsInNode,
-   	    int cGroups)
+   	    unsigned long cMinObsInNode)
 {
-	pTreeComp = new CTreeComps(dLambda,dBagFraction,
-	    	  cDepth, cMinObsInNode, cGroups);
+	pTreeComp = new CTreeComps(dLambda, cDepth, cMinObsInNode);
 	hasTreeContainer = true;
 }
 
@@ -78,17 +73,7 @@ void CGBM::Iterate
   dValidError = 0.0;
   dOOBagImprove = 0.0;
   
-  if(IsPairwise())
-  {
-	  pTreeComp->BagData(IsPairwise(), pDataCont->getDist()->misc_ptr(true), pDataCont->getData());
-
-  }
-  else
-  {
-	  pTreeComp->BagData(IsPairwise(), pDataCont->getDist()->misc_ptr(false), pDataCont->getData());
-
-  }
-
+  pDataCont->BagData();
 
 #ifdef NOISY_DEBUG
   Rprintf("Compute working response\n");

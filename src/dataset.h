@@ -80,7 +80,10 @@ public:
 	index_vector random_order() const;//randomize order of predictor varaiables
   
 	double GetBagFraction() const;
+
 	int GetNoGroups() const;
+	void SetNoGroups(int noGroups);
+
 	unsigned long GetValidSize() const;
 	long GetTotalInBag() const;
 	bag GetBag();

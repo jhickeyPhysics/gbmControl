@@ -535,6 +535,11 @@ void CDataset::FillRemainderOfBag(long offset)
 	std::fill((dataImpl->afInBag).begin() + offset, (dataImpl->afInBag).end(), false);
 }
 
+void CDataset::SetNoGroups(int noGroups)
+{
+	dataImpl->cGroups = noGroups;
+}
+
 
 
 

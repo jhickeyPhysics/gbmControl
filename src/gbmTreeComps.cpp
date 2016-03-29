@@ -32,15 +32,11 @@
 //
 //-----------------------------------
 CTreeComps::CTreeComps(double dLambda,
-	    double dBagFraction,
 	    unsigned long cDepth,
-	    unsigned long cMinObsInNode,
-	    int cGroups)
+	    unsigned long cMinObsInNode)
 {
 	this-> dLambda = dLambda;
-	this-> dBagFraction = dBagFraction;
 	this-> cMinObsInNode = cMinObsInNode;
-	this-> cGroups = cGroups;
 	ptreeTemp.reset(new CCARTTree);
 	ptreeTemp->SetDepth(cDepth);
 
@@ -88,92 +84,6 @@ void CTreeComps::TreeInitialize(const CDataset* pData)
 	}
 }
 
-//-----------------------------------
-// Function: BagData
-//
-// Returns: none
-//
-// Description: put data into bags.
-//
-// Parameters: bool - determines if distribution is pairwise
-//    CDistribution ptr - pointer to the distribution + data
-//
-//-----------------------------------
-void CTreeComps::BagData(bool IsPairwise, const double* misc,  CDataset* pData)
-{
-	unsigned long i = 0;
-	unsigned long cBagged = 0;
-	// randomly assign observations to the Bag
-	if (!IsPairwise)
-	{
-
-		// regular instance based training
-		for(i=0; i<pData->get_trainSize() && (cBagged < pData->GetTotalInBag()); i++)
-		{
-			if(unif_rand() * (pData->get_trainSize()-i) < pData->GetTotalInBag() - cBagged)
-			{
-				pData->SetBagElem(i, true);
-				cBagged++;
-			}
-			else
-			{
-				 pData->SetBagElem(i, false);
-			}
-		}
-
-		pData->FillRemainderOfBag(i);
-	}
-	else
-	{
-		// for pairwise training, sampling is per group
-		// therefore, we will not have exactly cTotalInBag instances
-
-		double dLastGroup = -1;
-		bool fChosen = false;
-		unsigned int cBaggedGroups = 0;
-		unsigned int cSeenGroups   = 0;
-		unsigned int cTotalGroupsInBag = (unsigned long)(dBagFraction * cGroups);
-		if (cTotalGroupsInBag <= 0)
-		{
-			cTotalGroupsInBag = 1;
-		}
-
-		for(i=0; i< pData->get_trainSize(); i++)
-		{
-			const double dGroup = misc[i];
-
-			if(dGroup != dLastGroup)
-			{
-				if (cBaggedGroups >= cTotalGroupsInBag)
-				{
-					break;
-				}
-
-				// Group changed, make a new decision
-				fChosen = (unif_rand()*(cGroups - cSeenGroups) <
-			   cTotalGroupsInBag - cBaggedGroups);
-				if(fChosen)
-				{
-					cBaggedGroups++;
-				}
-				dLastGroup = dGroup;
-				cSeenGroups++;
-			}
-			if(fChosen)
-			{
-				pData->SetBagElem(i, true);
-				cBagged++;
-			}
-			else
-			{
-				pData->SetBagElem(i, false);
-			}
-		}
-
-		// the remainder is not in the bag
-		pData->FillRemainderOfBag(i);
-	}
-}
 
 //-----------------------------------
 // Function: GrowTrees
@@ -409,21 +319,6 @@ const double CTreeComps::GetLambda() const
 unsigned long CTreeComps::GetMinNodeObs()
 {
 	return cMinObsInNode;
-}
-
-//-----------------------------------
-// Function: GetNoGroups
-//
-// Returns: int
-//
-// Description: get no of groups in data
-//
-// Parameters: none
-//
-//-----------------------------------
-int CTreeComps::GetNoGroups()
-{
-	return cGroups;
 }
 
 

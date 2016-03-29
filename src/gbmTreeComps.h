@@ -28,10 +28,8 @@ public:
 	// Public Constructors
 	//----------------------
     CTreeComps(double dLambda,
-    	    double dBagFraction,
     	    unsigned long cDepth,
-    	    unsigned long cMinObsInNode,
-    	    int cGroups);
+    	    unsigned long cMinObsInNode);
 
 
 	//---------------------
@@ -43,7 +41,6 @@ public:
 	// Public Functions
 	//---------------------
     void TreeInitialize(const CDataset* pData);
-    void BagData(bool IsPairwise, const double* misc, CDataset* pData);
     void GrowTrees(const CDataset* pData, int& cNodes);
     void AdjustAndShrink();
     void PredictValid(const CDataset* pData);
@@ -71,7 +68,6 @@ public:
 	double GetLambda();
 	const double GetLambda() const;
 	unsigned long GetMinNodeObs();
-	int GetNoGroups();
 
 private:
 	//-------------------
@@ -88,9 +84,7 @@ private:
     std::vector<double> adFadj;
 
     double dLambda;
-    double dBagFraction;
     unsigned long cMinObsInNode;
-    int  cGroups;
 };
 
 #endif //  __gbmTreeComps_h__

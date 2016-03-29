@@ -79,8 +79,7 @@ SEXP gbm
     CGBM GBM;
     GBM.SetDataAndDistribution(radY, radOffset, radX, raiXOrder,
             radWeight, racVarClasses, ralMonotoneVar, radMisc, family, cTrain, cFeatures, cGroups, dBagFraction);
-    GBM.SetTreeContainer(dShrinkage, cTrain, cFeatures,
-    		dBagFraction, cDepth, cMinObsInNode, cGroups);
+    GBM.SetTreeContainer(dShrinkage, cDepth, cMinObsInNode);
     
     // initialize the GBM
     GBM.Initialize();

@@ -50,12 +50,8 @@ public:
     		const int cTrain, const int cFeatures, int& cGroups, double bagFraction);
 
     void SetTreeContainer(double dLambda,
-    	    unsigned long cTrain,
-    	    unsigned long cFeatures,
-    	    double dBagFraction,
     	    unsigned long cDepth,
-    	    unsigned long cMinObsInNode,
-    	    int cGroups);
+    	    unsigned long cMinObsInNode);
 
     void Iterate(double *adF,
 		 double &dTrainError,
@@ -75,16 +71,13 @@ public:
 			     int cCatSplitsOld);
 
     void InitF(double &dInitF, unsigned long cLength);
-    bool IsPairwise() const { return (pTreeComp->GetNoGroups() >= 0); }
-
-    CGBMDataContainer* pDataCont;
-    CTreeComps* pTreeComp;
 
 private:
 	//-------------------
 	// Private Variables
 	//-------------------
-
+    CGBMDataContainer* pDataCont;
+	CTreeComps* pTreeComp;
     bool fInitialized;          // indicates whether the GBM has been initialized
     bool hasDataAndDist, hasTreeContainer;
 };

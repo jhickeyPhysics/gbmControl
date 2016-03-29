@@ -30,8 +30,8 @@ CGBMDataContainer::CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP 
         data(radY, radOffset, radX, raiXOrder,
     			radWeight, racVarClasses, ralMonotoneVar, cTrain, cFeatures, cGroups, fractionInBag)
 {
-	cGroups = -1;
 
+	cGroups = -1;
 	//Initialize the factory and then use to get the disribution
 	DistFactory = new DistributionFactory();
 
@@ -53,6 +53,9 @@ CGBMDataContainer::CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP 
 	{
 		pDist = DistFactory -> CreateDist(family, radMisc, "", cGroups, cTrain);
 	}
+
+	// Set the groups afterwards
+	data.SetNoGroups(cGroups);
 }
 
 //-----------------------------------
@@ -201,4 +204,93 @@ CDistribution* CGBMDataContainer::getDist()
 CDataset* CGBMDataContainer::getData()
 {
 	return &data;
+}
+
+
+//-----------------------------------
+// Function: BagData
+//
+// Returns: none
+//
+// Description: put data into bags.
+//
+// Parameters: bool - determines if distribution is pairwise
+//    CDistribution ptr - pointer to the distribution + data
+//
+//-----------------------------------
+void CGBMDataContainer::BagData()
+{
+	unsigned long i = 0;
+	unsigned long cBagged = 0;
+
+	// randomly assign observations to the Bag
+	if (data.GetNoGroups() < 0)
+	{
+		// regular instance based training
+		for(i=0; i<data.get_trainSize() && (cBagged < data.GetTotalInBag()); i++)
+		{
+			if(unif_rand() * (data.get_trainSize()-i) < data.GetTotalInBag() - cBagged)
+			{
+				data.SetBagElem(i, true);
+				cBagged++;
+			}
+			else
+			{
+				 data.SetBagElem(i, false);
+			}
+		}
+
+		data.FillRemainderOfBag(i);
+	}
+	else
+	{
+		// for pairwise training, sampling is per group
+		// therefore, we will not have exactly cTotalInBag instances
+
+		double dLastGroup = -1;
+		bool fChosen = false;
+		unsigned int cBaggedGroups = 0;
+		unsigned int cSeenGroups   = 0;
+		unsigned int cTotalGroupsInBag = (unsigned long)(data.GetBagFraction() * data.GetNoGroups());
+		if (cTotalGroupsInBag <= 0)
+		{
+			cTotalGroupsInBag = 1;
+		}
+
+		for(i=0; i< data.get_trainSize(); i++)
+		{
+
+			const double dGroup = pDist->misc_ptr(true)[i];
+
+			if(dGroup != dLastGroup)
+			{
+				if (cBaggedGroups >= cTotalGroupsInBag)
+				{
+					break;
+				}
+
+				// Group changed, make a new decision
+				fChosen = (unif_rand()*(data.GetNoGroups() - cSeenGroups) <
+			   cTotalGroupsInBag - cBaggedGroups);
+				if(fChosen)
+				{
+					cBaggedGroups++;
+				}
+				dLastGroup = dGroup;
+				cSeenGroups++;
+			}
+			if(fChosen)
+			{
+				data.SetBagElem(i, true);
+				cBagged++;
+			}
+			else
+			{
+				data.SetBagElem(i, false);
+			}
+		}
+
+		// the remainder is not in the bag
+		data.FillRemainderOfBag(i);
+	}
 }

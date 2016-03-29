@@ -50,6 +50,7 @@ public:
     void ComputeBestTermNodePreds(const double* adF, CTreeComps* pTreeComp, int& cNodes);
     double ComputeDeviance(const double *adF, CTreeComps* pTreeComp,  bool isValidationSet=false);
     double ComputeBagImprovement(const double* adF, CTreeComps* pTreeComp);
+    void BagData();
     CDistribution* getDist();
     CDataset* getData();
 
