@@ -92,13 +92,14 @@ void CCARTTree::grow
       // Loop over terminal nodes
       for(long iNode = 0; iNode < cTerminalNodes; iNode++)
       {
+    	  aNodeSearch[0].Set(*vecpTermNodes[iNode]);
     	  // Loop over variables
     	  for(CDataset::index_vector::const_iterator it=colNumbers.begin();
     			  it != final;
     			  it++)
     	  {
 
-    		  aNodeSearch[iNode].ResetForNewVar(*it, data.varclass(*it));
+    		  aNodeSearch[0].ResetForNewVar(*it, data.varclass(*it));
     		  // Loop over observations
     		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
     		  {
@@ -107,7 +108,7 @@ void CCARTTree::grow
 				  if(aiNodeAssign[iWhichObs] == iNode && data.GetBag()[iWhichObs])
 				  {
 					  const double dX = data.x_value(iWhichObs, *it);
-					  aNodeSearch[iNode].IncorporateObs(dX,
+					  aNodeSearch[0].IncorporateObs(dX,
 									adZ[iWhichObs],
 									data.weight_ptr()[iWhichObs],
 									data.monotone(*it));
@@ -117,13 +118,13 @@ void CCARTTree::grow
 
 			  if(data.varclass(*it) != 0) // evaluate if categorical split
 			  {
-				  aNodeSearch[iNode].EvaluateCategoricalSplit();
+				  aNodeSearch[0].EvaluateCategoricalSplit();
 			  }
-			  aNodeSearch[iNode].WrapUpCurrentVariable();
+			  aNodeSearch[0].WrapUpCurrentVariable();
 		  }
 
     	  // Assign best split to node
-    	  aNodeSearch[iNode].AssignToNode(*vecpTermNodes[iNode]);
+    	  aNodeSearch[0].AssignToNode(*vecpTermNodes[iNode]);
 	  }
 
 	// search for the best split
@@ -131,7 +132,7 @@ void CCARTTree::grow
 	double dBestNodeImprovement = 0.0;
 	for(long iNode=0; iNode < cTerminalNodes; iNode++)
 	{
-		aNodeSearch[iNode].SetToSplit();
+		aNodeSearch[0].SetToSplit();
 		if(vecpTermNodes[iNode]->SplitImprovement() > dBestNodeImprovement)
 		{
 			iBestNode = iNode;
@@ -169,14 +170,6 @@ void CCARTTree::grow
 	      // those to the left stay with the same node assignment
 	  	  }
       }
-
-      // set up the node search for the new right node
-      aNodeSearch[cTerminalNodes-2].Set(*(vecpTermNodes[iBestNode]->pRightNode));
-      // set up the node search for the new missing node
-      aNodeSearch[cTerminalNodes-1].Set(*(vecpTermNodes[iBestNode]->pMissingNode));
-      // set up the node search for the new left node
-      // must be done second since we need info for right node first
-      aNodeSearch[iBestNode].Set(*(vecpTermNodes[iBestNode]->pLeftNode));
 
       vecpTermNodes[cTerminalNodes-2] = vecpTermNodes[iBestNode]->pRightNode;
 	  vecpTermNodes[cTerminalNodes-1] = vecpTermNodes[iBestNode]->pMissingNode;
