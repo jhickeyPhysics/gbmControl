@@ -11,18 +11,18 @@
 // Includes
 //-----------------------------------
 #include "distributionFactory.h"
-//#include "adaboost.h"
-//#include "bernoulli.h"
+#include "adaboost.h"
+#include "bernoulli.h"
 #include "coxph.h"
-//#include "gamma.h"
-//#include "gaussian.h"
-//#include "huberized.h"
-//#include "laplace.h"
-//#include "pairwise.h"
-//#include "poisson.h"
+#include "gamma.h"
+#include "gaussian.h"
+#include "huberized.h"
+#include "laplace.h"
+#include "pairwise.h"
+#include "poisson.h"
 #include "quantile.h"
-//#include "tdist.h"
-//#include "tweedie.h"
+#include "tdist.h"
+#include "tweedie.h"
 #include <stdexcept>
 
 //----------------------------------------
@@ -42,18 +42,18 @@
 //-----------------------------------
 DistributionFactory::DistributionFactory()
 {
-	//RegisterDist("adaboost", &CAdaBoost::Create);
-	//RegisterDist("bernoulli", &CBernoulli::Create);
+	RegisterDist("adaboost", &CAdaBoost::Create);
+	RegisterDist("bernoulli", &CBernoulli::Create);
 	RegisterDist("coxph", &CCoxPH::Create);
-	//RegisterDist("gamma", &CGamma::Create);
-	//RegisterDist("gaussian", &CGaussian::Create);
-	//RegisterDist("huberized", &CHuberized::Create);
-	//RegisterDist("laplace", &CLaplace::Create);
-	//RegisterDist("pairwise", &CPairwise::Create);
-	//RegisterDist("poisson", &CPoisson::Create);
+	RegisterDist("gamma", &CGamma::Create);
+	RegisterDist("gaussian", &CGaussian::Create);
+	RegisterDist("huberized", &CHuberized::Create);
+	RegisterDist("laplace", &CLaplace::Create);
+	RegisterDist("pairwise", &CPairwise::Create);
+	RegisterDist("poisson", &CPoisson::Create);
 	RegisterDist("quantile", &CQuantile::Create);
-	//RegisterDist("tdist", &CTDist::Create);
-	//RegisterDist("tweedie", &CTweedie::Create);
+	RegisterDist("tdist", &CTDist::Create);
+	RegisterDist("tweedie", &CTweedie::Create);
 }
 
 //----------------------------------------

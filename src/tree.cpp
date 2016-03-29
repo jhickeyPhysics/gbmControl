@@ -81,12 +81,10 @@ void CCARTTree::grow
 
   dError = dSumZ2-dSumZ*dSumZ/dTotalW;
   pRootNode = new CNode(dSumZ/dTotalW, dTotalW, data.GetTotalInBag(), true);
-
-
   vecpTermNodes.resize(2*depthOfTree + 1,NULL); // accounts for missing nodes
   vecpTermNodes[0] = pRootNode;
   aNodeSearch[0].Set(*pRootNode);
-  
+
   // build the tree structure
 #ifdef NOISY_DEBUG
   Rprintf("Building tree 1 ");
@@ -160,6 +158,7 @@ void CCARTTree::grow
       cTotalNodeCount += 3;
       cTerminalNodes += 2;
 
+
         // assign observations to the correct node
       for(long iObs=0; iObs < data.get_trainSize(); iObs++)
       {
@@ -179,7 +178,6 @@ void CCARTTree::grow
 	  	  }
       }
 
-
       // set up the node search for the new right node
       aNodeSearch[cTerminalNodes-2].Set(*(vecpTermNodes[iBestNode]->pRightNode));
       // set up the node search for the new missing node
@@ -189,8 +187,11 @@ void CCARTTree::grow
       aNodeSearch[iBestNode].Set(*(vecpTermNodes[iBestNode]->pLeftNode));
 
       vecpTermNodes[cTerminalNodes-2] = vecpTermNodes[iBestNode]->pRightNode;
-      vecpTermNodes[cTerminalNodes-1] = vecpTermNodes[iBestNode]->pMissingNode;
-      vecpTermNodes[iBestNode] = vecpTermNodes[iBestNode]->pLeftNode;
+	  vecpTermNodes[cTerminalNodes-1] = vecpTermNodes[iBestNode]->pMissingNode;
+	  vecpTermNodes[iBestNode] = vecpTermNodes[iBestNode]->pLeftNode;
+
+
+
 
     } // end tree growing
 
@@ -259,7 +260,7 @@ void CCARTTree::Adjust
   unsigned long iObs = 0;
   
   pRootNode->Adjust(cMinObsInNode);
-  
+
   // predict for the training observations
   for(iObs=0; iObs<aiNodeAssign.size(); iObs++)
     {

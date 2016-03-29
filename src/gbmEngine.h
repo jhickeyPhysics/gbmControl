@@ -77,12 +77,14 @@ public:
     void InitF(double &dInitF, unsigned long cLength);
     bool IsPairwise() const { return (pTreeComp->GetNoGroups() >= 0); }
 
+    CGBMDataContainer* pDataCont;
+    CTreeComps* pTreeComp;
+
 private:
 	//-------------------
 	// Private Variables
 	//-------------------
-    CGBMDataContainer* pDataCont;
-    CTreeComps* pTreeComp;
+
     bool fInitialized;          // indicates whether the GBM has been initialized
     bool hasDataAndDist, hasTreeContainer;
 };

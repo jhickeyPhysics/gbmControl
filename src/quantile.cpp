@@ -200,6 +200,7 @@ double CQuantile::BagImprovement
         if(!data.GetBagElem(i))
         {
             dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
+
             if(data.y_ptr()[i] > dF)
             {
                 dReturnValue += data.weight_ptr()[i]*dAlpha*(data.y_ptr()[i]-dF);
@@ -222,7 +223,6 @@ double CQuantile::BagImprovement
             dW += data.weight_ptr()[i];
         }
     }
-
     return dReturnValue/dW;
 }
 

@@ -169,7 +169,6 @@ SEXP gbm
       }
 
     if(verbose) Rprintf("\n");
-
     using Rcpp::_;
     return Rcpp::List::create(_["initF"]=dInitF,
                               _["fit"]=adF,

@@ -115,6 +115,7 @@ void CGBM::Iterate
   for(i=0; i < pDataCont->getData()->get_trainSize(); i++)
   {
     adF[i] += pTreeComp->GetLambda() * pTreeComp->RespAdjElem(i);
+
   }
   dTrainError = pDataCont->ComputeDeviance(&adF[0], pTreeComp, false);
 

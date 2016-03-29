@@ -95,7 +95,7 @@ void CNodeSearch::IncorporateObs
 
 
 
-void CNodeSearch::Set(CNode& nodeToSplit)
+void CNodeSearch::Set(CNode nodeToSplit)
 {
     dInitSumZ = nodeToSplit.dPrediction * nodeToSplit.dTrainW;
     dInitTotalW = nodeToSplit.dTrainW;
@@ -189,7 +189,7 @@ void CNodeSearch::EvaluateCategoricalSplit()
       proposedSplit.UpdateLeftNode(adGroupSumZ[aiCurrentCategory[i]], adGroupW[aiCurrentCategory[i]],
     		  	  	  	  	  	  acGroupN[aiCurrentCategory[i]]);
 
-            proposedSplit.NodeGradResiduals();
+      proposedSplit.NodeGradResiduals();
 
       if(proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
 	 (proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals ))

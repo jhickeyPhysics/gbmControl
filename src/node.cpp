@@ -256,9 +256,10 @@ void CNode::SplitNode(SplitParams bestSplit, std::vector<long>& bestCategory)
 
 	dImprovement = bestSplit.ImprovedResiduals ;
 	pLeftNode    = new CNode(bestSplit.LeftWeightResiduals/bestSplit.LeftTotalWeight, bestSplit.LeftTotalWeight,
-								bestSplit.LeftNumObs, true);
+									bestSplit.LeftNumObs, true);
 	pRightNode   = new CNode(bestSplit.RightWeightResiduals/bestSplit.RightTotalWeight,
 							bestSplit.RightTotalWeight, bestSplit.RightNumObs, true);
+
 	pMissingNode = new CNode(bestSplit.MissingWeightResiduals/bestSplit.MissingTotalWeight,
 							bestSplit.MissingTotalWeight, bestSplit.MissingNumObs, true);
 

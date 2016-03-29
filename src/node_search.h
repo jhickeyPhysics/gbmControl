@@ -37,7 +37,7 @@ public:
 			double dW,
 			long lMonotone);
 
-    void Set(CNode& nodeToSplit);
+    void Set(CNode nodeToSplit);
     void ResetForNewVar(unsigned long iWhichVar,
 			long cVarClasses);
     
