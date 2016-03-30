@@ -117,7 +117,7 @@ SEXP gbm
         double dTrainError = 0;
         double dValidError = 0;
         double dOOBagImprove = 0;
-        GBM.Iterate(adF.begin(),
+        GBM.FitLearner(adF.begin(),
                       dTrainError,dValidError,dOOBagImprove,
                       cNodes);
 

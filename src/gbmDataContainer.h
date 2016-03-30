@@ -46,10 +46,10 @@ public:
 	//---------------------
     void Initialize();
     void InitializeFunctionEstimate(double &dInitF, unsigned long cLength);
-    void ComputeResiduals(const double* adF, CTreeComps* pTreeComp);
-    void ComputeBestTermNodePreds(const double* adF, CTreeComps* pTreeComp, int& cNodes);
-    double ComputeDeviance(const double *adF, CTreeComps* pTreeComp,  bool isValidationSet=false);
-    double ComputeBagImprovement(const double* adF, CTreeComps* pTreeComp);
+    void ComputeResiduals(const double* adF, double* adZ);
+    void ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp, int& cNodes);
+    double ComputeDeviance(const double *adF, bool isValidationSet=false);
+    double ComputeBagImprovement(const double* adF, const double shrinkage, const double* adFadj);
     void BagData();
     CDistribution* getDist();
     CDataset* getData();

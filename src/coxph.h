@@ -53,6 +53,7 @@ public:
     void FitBestConstant(const CDataset* pData,
     		const double *adF,
 			 unsigned long cTermNodes,
+			 double* adZ,
 			 CTreeComps* pTreeComps);
     
     double Deviance(const CDataset* pData,
@@ -61,7 +62,7 @@ public:
 
     double BagImprovement(const CDataset& data,
     					  const double *adF,
-    					  const bag& afInBag, const CTreeComps* pTreeComps);
+    					  const bag& afInBag, const double shrinkage, const double* adFadj);
 
 
 private:

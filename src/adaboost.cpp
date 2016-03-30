@@ -157,6 +157,7 @@ void CAdaBoost::FitBestConstant
 	const CDataset* pData,
     const double *adF,
     unsigned long cTermNodes,
+    double* adZ,
     CTreeComps* pTreeComps
 )
 {
@@ -204,7 +205,8 @@ double CAdaBoost::BagImprovement
 	const CDataset& data,
     const double *adF,
     const bag& afInBag,
-    const CTreeComps* pTreeComps
+    const double shrinkage,
+    const double* adFadj
 )
 {
     double dReturnValue = 0.0;
@@ -220,7 +222,7 @@ double CAdaBoost::BagImprovement
 
             dReturnValue += data.weight_ptr()[i]*
                 (std::exp(-(2*data.y_ptr()[i]-1)*dF) -
-                 std::exp(-(2*data.y_ptr()[i]-1)*(dF+(pTreeComps->GetLambda())*(pTreeComps->GetRespAdj()[i]))));
+                 std::exp(-(2*data.y_ptr()[i]-1)*(dF+(shrinkage)*(adFadj[i]))));
             dW += data.weight_ptr()[i];
         }
     }

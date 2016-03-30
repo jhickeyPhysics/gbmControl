@@ -13,6 +13,8 @@ CGBM::CGBM()
     // Containers
     pDataCont = NULL;
     pTreeComp = NULL;
+
+
 }
 
 
@@ -31,6 +33,10 @@ void CGBM::SetDataAndDistribution(SEXP radY, SEXP radOffset, SEXP radX, SEXP rai
 	pDataCont=new CGBMDataContainer(radY, radOffset, radX, raiXOrder,
 	        radWeight, racVarClasses, ralMonotoneVar, radMisc, family,
 	        cTrain, cFeatures, cGroups, bagFraction);
+
+	// Set up residuals container
+	adZ.assign(pDataCont->getData()->nrow(), 0);
+	adFadj.assign(pDataCont->getData()->nrow(), 0);
 	hasDataAndDist = true;
 }
 
@@ -55,7 +61,7 @@ void CGBM::Initialize()
 	fInitialized = true;
 }
 
-void CGBM::Iterate
+void CGBM::FitLearner
 (
   double *adF,
   double &dTrainError,
@@ -79,8 +85,8 @@ void CGBM::Iterate
   Rprintf("Compute working response\n");
 #endif
 
-  pDataCont->ComputeResiduals(&adF[0], pTreeComp);
-  pTreeComp->GrowTrees(pDataCont->getData(), cNodes);
+  pDataCont->ComputeResiduals(&adF[0], &adZ[0]);
+  pTreeComp->GrowTrees(pDataCont->getData(), cNodes, &adZ[0], &adFadj[0]);
 
   // Now I have adF, adZ, and vecpTermNodes (new node assignments)
   // Fit the best constant within each terminal node
@@ -88,32 +94,33 @@ void CGBM::Iterate
   Rprintf("fit best constant\n");
 #endif
 
-  pDataCont->ComputeBestTermNodePreds(&adF[0], pTreeComp, cNodes);
-  pTreeComp->AdjustAndShrink();
+  pDataCont->ComputeBestTermNodePreds(&adF[0], &adZ[0], pTreeComp, cNodes);
+  pTreeComp->AdjustAndShrink(&adFadj[0]);
 
   // update training predictions
   // fill in missing nodes where N < cMinObsInNode
-  dOOBagImprove = pDataCont->ComputeBagImprovement(&adF[0], pTreeComp);
+  dOOBagImprove = pDataCont->ComputeBagImprovement(&adF[0], pTreeComp->GetLambda(), &adFadj[0]);
 
   // update the training predictions
   unsigned long i = 0;
   for(i=0; i < pDataCont->getData()->get_trainSize(); i++)
   {
-    adF[i] += pTreeComp->GetLambda() * pTreeComp->RespAdjElem(i);
+    adF[i] += pTreeComp->GetLambda() * adFadj[i];
 
   }
-  dTrainError = pDataCont->ComputeDeviance(&adF[0], pTreeComp, false);
+
+  dTrainError = pDataCont->ComputeDeviance(&adF[0], false);
 
   // update the validation predictions
-  pTreeComp->PredictValid(pDataCont->getData());
+  pTreeComp->PredictValid(pDataCont->getData(), &adFadj[0]);
   for(i=pDataCont->getData()->get_trainSize();
 	  i < pDataCont->getData()->get_trainSize()+pDataCont->getData()->GetValidSize();
 	  i++)
   {
-    adF[i] += pTreeComp->RespAdjElem(i);
+    adF[i] += adFadj[i];
   }
 
-  dValidError = pDataCont->ComputeDeviance(&adF[0], pTreeComp, true);
+  dValidError = pDataCont->ComputeDeviance(&adF[0], true);
 
 }
 

@@ -149,6 +149,7 @@ void CCoxPH::FitBestConstant
 	const CDataset* pData,
     const double *adF,
     unsigned long cTermNodes,
+    double* adZ,
     CTreeComps* pTreeComps
 )
 {
@@ -270,7 +271,8 @@ double CCoxPH::BagImprovement
 	const CDataset& data,
     const double *adF,
     const bag& afInBag,
-  const CTreeComps* pTreeComps
+  const double shrinkage,
+  const double* adFadj
 )
 {
     double dReturnValue = 0.0;
@@ -286,12 +288,12 @@ double CCoxPH::BagImprovement
     {
         if(!data.GetBagElem(i))
         {
-            dNum += data.weight_ptr()[i]*std::exp(dF + pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]);
+            dNum += data.weight_ptr()[i]*std::exp(dF + shrinkage*adFadj[i]);
             dDen += data.weight_ptr()[i]*std::exp(dF);
             if(adDelta[i]==1.0)
             {
                 dReturnValue +=
-                    data.weight_ptr()[i]*(pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i] - std::log(dNum) + log(dDen));
+                    data.weight_ptr()[i]*(shrinkage*adFadj[i] - std::log(dNum) + log(dDen));
                 dW += data.weight_ptr()[i];
             }
         }

@@ -79,12 +79,12 @@ public:
 
     virtual void FitBestConstant(const CDataset* pData, const double *adF,
 						  unsigned long cTermNodes,
-						  CTreeComps* pTreeComps) = 0;
+						  double* adZ, CTreeComps* pTreeComps) = 0;
 
     virtual double BagImprovement(const CDataset& data,
     							  const double *adF,
 								  const bag& afInBag,
-								  const CTreeComps* pTreeComps) = 0;
+								  const double shrinkage, const double* adFadj) = 0;
 
 private:
     //---------------------

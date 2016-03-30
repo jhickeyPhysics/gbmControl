@@ -69,10 +69,6 @@ CTreeComps::~CTreeComps()
 //-----------------------------------
 void CTreeComps::TreeInitialize(const CDataset* pData)
 {
-
-	adZ.assign(pData->nrow(), 0);
-	adFadj.assign(pData->nrow(), 0);
-
 	// aiNodeAssign tracks to which node each training obs belongs
 	aiNodeAssign.resize(pData->get_trainSize());
 }
@@ -89,7 +85,7 @@ void CTreeComps::TreeInitialize(const CDataset* pData)
 //    int& - reference to  number of nodes in tree
 //
 //-----------------------------------
-void CTreeComps::GrowTrees(const CDataset* pData, int& cNodes)
+void CTreeComps::GrowTrees(const CDataset* pData, int& cNodes, double* adZ, const double* adFadj)
 {
 	#ifdef NOISY_DEBUG
 	  Rprintf("Reset tree\n");
@@ -130,7 +126,7 @@ void CTreeComps::GrowTrees(const CDataset* pData, int& cNodes)
 // Parameters: none
 //
 //-----------------------------------
-void CTreeComps::AdjustAndShrink()
+void CTreeComps::AdjustAndShrink(double * adFadj)
 {
 	ptreeTemp->Adjust(aiNodeAssign,
 	                  &(adFadj[0]),
@@ -196,8 +192,7 @@ void CTreeComps::TransferTreeToRList(const CDataset &pData,
 //
 // Parameters: const CDataset ptr - ptr to gbm data
 //
-//-----------------------------------
-void CTreeComps::PredictValid(const CDataset* pData)
+void CTreeComps::PredictValid(const CDataset* pData, double* adFadj)
 {
 	ptreeTemp->PredictValid(*(pData), pData->GetValidSize(), &(adFadj[0]));
 }
@@ -230,57 +225,6 @@ std::vector<unsigned long> CTreeComps::GetNodeAssign()
 vector<CNode*> CTreeComps::GetTermNodes()
 {
 	return ptreeTemp->GetTermNodes();
-}
-
-
-//-----------------------------------
-// Function: GetGrad
-//
-// Returns: double ptr
-//
-// Description: getter for ptr to loss function grad
-//
-// Parameters: none
-//
-//-----------------------------------
-double* CTreeComps::GetGrad()
-{
-	return &(adZ[0]);
-}
-
-//-----------------------------------
-// Function: GetRespAdj
-//
-// Returns: double ptr
-//
-// Description: getter for ptr to response adjustment
-//
-// Parameters: none
-//
-//-----------------------------------
-double* CTreeComps::GetRespAdj()
-{
-	return &(adFadj[0]);
-}
-
-const double* CTreeComps::GetRespAdj() const
-{
-	return &(adFadj[0]);
-}
-
-//-----------------------------------
-// Function: RespAdjElem
-//
-// Returns: const double
-//
-// Description: get element of response adjustment
-//
-// Parameters: int - index of element to get
-//
-//-----------------------------------
-const double  CTreeComps::RespAdjElem(int ind)
-{
-	return adFadj[ind];
 }
 
 //-----------------------------------

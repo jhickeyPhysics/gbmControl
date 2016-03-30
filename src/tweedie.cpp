@@ -146,6 +146,7 @@ void CTweedie::FitBestConstant
 	const CDataset* pData,
     const double *adF,
     unsigned long cTermNodes,
+    double* adZ,
     CTreeComps* pTreeComps
 )
 {
@@ -213,7 +214,8 @@ double CTweedie::BagImprovement
 	const CDataset& data,
 	const double *adF,
 	const bag& afInBag,
-	const CTreeComps* pTreeComps
+	const double shrinkage,
+	const double* adFadj
 )
 {
 	double dReturnValue = 0.0;
@@ -228,8 +230,8 @@ double CTweedie::BagImprovement
 			dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
 
 			dReturnValue += data.weight_ptr()[i]*( std::exp(dF*(1.0-dPower))*data.y_ptr()[i]/(1.0-dPower)*
-				(std::exp(pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]*(1.0-dPower))-1.0) +
-				std::exp(dF*(2.0-dPower))/(2.0-dPower)*(1.0-exp(pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]*(2.0-dPower))) );
+				(std::exp(shrinkage*adFadj[i]*(1.0-dPower))-1.0) +
+				std::exp(dF*(2.0-dPower))/(2.0-dPower)*(1.0-exp(shrinkage*adFadj[i]*(2.0-dPower))) );
 			dW += data.weight_ptr()[i];
 		}
 	}

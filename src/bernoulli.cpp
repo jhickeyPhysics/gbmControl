@@ -158,6 +158,7 @@ void CBernoulli::FitBestConstant
   const CDataset* pData,
   const double *adF,
   unsigned long cTermNodes,
+  double* adZ,
   CTreeComps* pTreeComps
 )
 {
@@ -174,9 +175,9 @@ void CBernoulli::FitBestConstant
   {
     if(pData->GetBagElem(iObs))
     {
-      vecdNum[pTreeComps->GetNodeAssign()[iObs]] += pData->weight_ptr()[iObs]*pTreeComps->GetGrad()[iObs];
+      vecdNum[pTreeComps->GetNodeAssign()[iObs]] += pData->weight_ptr()[iObs]*adZ[iObs];
       vecdDen[pTreeComps->GetNodeAssign()[iObs]] +=
-          pData->weight_ptr()[iObs]*(pData->y_ptr()[iObs]-pTreeComps->GetGrad()[iObs])*(1-pData->y_ptr()[iObs]+pTreeComps->GetGrad()[iObs]);
+          pData->weight_ptr()[iObs]*(pData->y_ptr()[iObs]-adZ[iObs])*(1-pData->y_ptr()[iObs]+adZ[iObs]);
 #ifdef NOISY_DEBUG
 /*
       Rprintf("iNode=%d, dNum(%d)=%f, dDen(%d)=%f\n",
@@ -223,7 +224,8 @@ double CBernoulli::BagImprovement
 	const CDataset& data,
     const double *adF,
     const bag& afInBag,
-    const CTreeComps* pTreeComps
+    const double shrinkage,
+    const double* adFadj
 )
 {
     double dReturnValue = 0.0;
@@ -239,11 +241,11 @@ double CBernoulli::BagImprovement
 
             if(data.y_ptr()[i]==1.0)
             {
-                dReturnValue += data.weight_ptr()[i]*pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i];
+                dReturnValue += data.weight_ptr()[i]*shrinkage*adFadj[i];
             }
             dReturnValue += data.weight_ptr()[i]*
                             (std::log(1.0+std::exp(dF)) -
-                             std::log(1.0+std::exp(dF+pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i])));
+                             std::log(1.0+std::exp(dF+shrinkage*adFadj[i])));
             dW += data.weight_ptr()[i];
         }
     }

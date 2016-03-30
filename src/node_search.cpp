@@ -8,16 +8,8 @@
 
 CNodeSearch::CNodeSearch()
 {
-    bestSplit.SplitVar = 0;
-
-    bestSplit.SplitValue = 0.0;
     fIsSplit = false;
     cTerminalNodes = 1;
-
-    bestSplit.MissingTotalWeight = 0.0;
-    proposedSplit.MissingTotalWeight = 0.0;
-    bestSplit.MissingWeightResiduals = 0.0;
-    proposedSplit.MissingWeightResiduals = 0.0;
 
     adGroupSumZ.resize(1024);
     adGroupW.resize(1024);
@@ -62,17 +54,17 @@ void CNodeSearch::GenerateAllSplits
 	for(long iNode = 0; iNode < cTerminalNodes; iNode++)
 	{
 	  Set(*vecpTermNodes[iNode]);
-	  // Loop over variables
+
+	  // Loop over variables - Generate splits
 	  for(CDataset::index_vector::const_iterator it=colNumbers.begin();
 			  it != final;
 			  it++)
 	  {
 
 		  ResetForNewVar(*it, data.varclass(*it));
-		  // Loop over observations
 		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
 		  {
-			  //Get Observation
+			  //Get Observation and add to split if needed
 			  iWhichObs = data.order_ptr()[(*it)*data.get_trainSize() + iOrderObs];
 			  if(aiNodeAssign[iWhichObs] == iNode && data.GetBag()[iWhichObs])
 			  {
@@ -95,6 +87,7 @@ void CNodeSearch::GenerateAllSplits
 	  // Assign best split to node
 	  AssignToNode(*vecpTermNodes[iNode]);
 	}
+
 }
 
 
@@ -148,21 +141,19 @@ void CNodeSearch::ReAssignData
 	// assign observations to the correct node
 	for(long iObs=0; iObs < data.get_trainSize(); iObs++)
 	{
-	  signed char iWhichNode = aiNodeAssign[iObs];
-
-	if(iWhichNode==splittedNodeIndex)
-	{
-	  signed char schWhichNode = vecpTermNodes[splittedNodeIndex]->WhichNode(data,iObs);
-	  if(schWhichNode == 1) // goes right
-	  {
-		  aiNodeAssign[iObs] = cTerminalNodes-2;
-	  }
-	  else if(schWhichNode == 0) // is missing
-	  {
-		  aiNodeAssign[iObs] = cTerminalNodes-1;
-	  }
-	  // those to the left stay with the same node assignment
-	  }
+		if(aiNodeAssign[iObs]==splittedNodeIndex)
+		{
+		  signed char schWhichNode = vecpTermNodes[splittedNodeIndex]->WhichNode(data,iObs);
+		  if(schWhichNode == 1) // goes right
+		  {
+			  aiNodeAssign[iObs] = cTerminalNodes-2;
+		  }
+		  else if(schWhichNode == 0) // is missing
+		  {
+			  aiNodeAssign[iObs] = cTerminalNodes-1;
+		  }
+		  // those to the left stay with the same node assignment
+		  }
 	}
 }
 
@@ -194,11 +185,13 @@ void CNodeSearch::IncorporateObs
         // Evaluate the current split
         // the newest observation is still in the right child
         proposedSplit.SplitValue = 0.5*(dLastXValue + dX);
+
         if((dLastXValue != dX) &&
             proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
             proposedSplit.SplitIsCorrMonotonic(lMonotone))
         {
         	proposedSplit.NodeGradResiduals();
+
             if(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals )
             {
             	bestSplit = proposedSplit;
@@ -299,12 +292,12 @@ void CNodeSearch::EvaluateCategoricalSplit()
     	  cFiniteMeans++;
       }
       else
-        {
-	  adGroupMean[i] = HUGE_VAL;
-        }
+      {
+    	  adGroupMean[i] = HUGE_VAL;
+      }
     }
   
-  rsort_with_index(&adGroupMean[0],&aiCurrentCategory[0],proposedSplit.SplitClass);
+  rsort_with_index(&adGroupMean[0], &aiCurrentCategory[0], proposedSplit.SplitClass);
     
   // if only one group has a finite mean it will not consider
   // might be all are missing so no categories enter here
@@ -313,42 +306,23 @@ void CNodeSearch::EvaluateCategoricalSplit()
       proposedSplit.SplitValue = (double)i;
       proposedSplit.UpdateLeftNode(adGroupSumZ[aiCurrentCategory[i]], adGroupW[aiCurrentCategory[i]],
     		  	  	  	  	  	  acGroupN[aiCurrentCategory[i]]);
-
       proposedSplit.NodeGradResiduals();
 
       if(proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
-	 (proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals ))
+	 (proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals))
         {
-	  bestSplit.SplitValue = proposedSplit.SplitValue;
-	  if(bestSplit.SplitVar!= proposedSplit.SplitVar)
-	  {
-		  bestSplit.SplitVar = proposedSplit.SplitVar;
-		  bestSplit.SplitClass = proposedSplit.SplitClass;
 
-	      std::copy(aiCurrentCategory.begin(),
-			aiCurrentCategory.end(),
-			aiBestCategory.begin());
-	  }
+      	  bestSplit = proposedSplit;
 
-	  bestSplit.LeftWeightResiduals      = proposedSplit.LeftWeightResiduals;
-	  bestSplit.LeftTotalWeight    = proposedSplit.LeftTotalWeight;
-	  bestSplit.LeftNumObs         = proposedSplit.LeftNumObs;
-	  bestSplit.RightWeightResiduals     = proposedSplit.RightWeightResiduals;
-	  bestSplit.RightTotalWeight   = proposedSplit.RightTotalWeight;
-	  bestSplit.RightNumObs        = proposedSplit.RightNumObs;
-	  bestSplit.ImprovedResiduals    = proposedSplit.ImprovedResiduals;
+      	  std::copy(aiCurrentCategory.begin(),
+      				aiCurrentCategory.end(),
+      				aiBestCategory.begin());
+
         }
     }
 }
 
 
-
-
-void CNodeSearch::SetupNewNodes(CNode& nodeToSplit)
-{
-	nodeToSplit.SplitNode();
-
-}
 
 
 void CNodeSearch::AssignToNode(CNode& terminalNode)

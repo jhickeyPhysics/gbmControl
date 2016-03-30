@@ -41,9 +41,9 @@ public:
 	// Public Functions
 	//---------------------
     void TreeInitialize(const CDataset* pData);
-    void GrowTrees(const CDataset* pData, int& cNodes);
-    void AdjustAndShrink();
-    void PredictValid(const CDataset* pData);
+    void GrowTrees(const CDataset* pData, int& cNodes,  double* adZ, const double* adFadj);
+    void AdjustAndShrink(double * adFadj);
+    void PredictValid(const CDataset* pData, double* adFadj);
     void TransferTreeToRList(const CDataset &pData,
 		     int *aiSplitVar,
 		     double *adSplitPoint,
@@ -60,11 +60,6 @@ public:
 	std::vector<unsigned long> GetNodeAssign();
 	vector<CNode*> GetTermNodes();
 
-	double* GetGrad();
-	double* GetRespAdj();
-	const double* GetRespAdj() const;
-	const double  RespAdjElem(int ind);
-
 	double GetLambda();
 	const double GetLambda() const;
 	unsigned long GetMinNodeObs();
@@ -79,9 +74,6 @@ private:
     std::vector<unsigned long> aiNodeAssign;
     CNodeSearch aNodeSearch;
     std::auto_ptr<CCARTTree> ptreeTemp;
-
-    std::vector<double> adZ;
-    std::vector<double> adFadj;
 
     double dLambda;
     unsigned long cMinObsInNode;

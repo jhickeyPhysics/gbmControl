@@ -134,6 +134,7 @@ void CLaplace::FitBestConstant
  const CDataset* pData,
  const double *adF,
  unsigned long cTermNodes,
+ double* adZ,
  CTreeComps* pTreeComps
 )
 {
@@ -177,7 +178,8 @@ double CLaplace::BagImprovement
 	const CDataset& data,
     const double *adF,
     const bag& afInBag,
-    const CTreeComps* pTreeComps
+    const double shrinkage,
+    const double* adFadj
 )
 {
     double dReturnValue = 0.0;
@@ -192,7 +194,7 @@ double CLaplace::BagImprovement
             dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
 
             dReturnValue +=
-                data.weight_ptr()[i]*(fabs(data.y_ptr()[i]-dF) - fabs(data.y_ptr()[i]-dF-pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]));
+                data.weight_ptr()[i]*(fabs(data.y_ptr()[i]-dF) - fabs(data.y_ptr()[i]-dF-shrinkage*adFadj[i]));
             dW += data.weight_ptr()[i];
         }
     }

@@ -139,6 +139,7 @@ void CGamma::FitBestConstant
 const CDataset* pData,
  const double *adF,
  unsigned long cTermNodes,
+ double* adZ,
  CTreeComps* pTreeComps
 )
 {
@@ -206,7 +207,8 @@ double CGamma::BagImprovement
 	const CDataset& data,
 	const double *adF,
 	const bag& afInBag,
-	const CTreeComps* pTreeComps
+	const double shrinkage,
+	const double* adFadj
 )
 {
 	double dReturnValue = 0.0;
@@ -219,7 +221,7 @@ double CGamma::BagImprovement
 		if(!data.GetBagElem(i))
 		{
 			dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
-			dReturnValue += data.weight_ptr()[i]*(data.y_ptr()[i]*std::exp(-dF)*(1.0-exp(-pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i])) - pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]);
+			dReturnValue += data.weight_ptr()[i]*(data.y_ptr()[i]*std::exp(-dF)*(1.0-exp(-shrinkage*adFadj[i])) - shrinkage*adFadj[i]);
 			dW += data.weight_ptr()[i];
 		}
 	}

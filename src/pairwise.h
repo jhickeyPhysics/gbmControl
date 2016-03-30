@@ -285,12 +285,13 @@ public:
     void FitBestConstant(const CDataset* pData,
     		const double *adF,
 			 unsigned long cTermNodes,
+			 double* adZ,
 			 CTreeComps* pTreeComps);
 
     double BagImprovement(const CDataset& data,
     					  const double *adF,
     					  const bag& afInBag,
-                          const CTreeComps* pTreeComps);
+                          const double shrinkage, const double* adFadj);
 
 protected:
 

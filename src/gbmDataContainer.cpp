@@ -114,10 +114,9 @@ void CGBMDataContainer::InitializeFunctionEstimate(double& dInitF, unsigned long
 //    CTreeComps ptr - ptr to the tree components container in the gbm.
 //
 //-----------------------------------
-void CGBMDataContainer::ComputeResiduals(const double* adF, CTreeComps* pTreeComp)
+void CGBMDataContainer::ComputeResiduals(const double* adF, double* adZ)
 {
-	pDist->ComputeWorkingResponse(&data, adF,
-	                               	pTreeComp->GetGrad());
+	pDist->ComputeWorkingResponse(&data, adF, adZ);
 }
 
 //-----------------------------------
@@ -131,11 +130,11 @@ void CGBMDataContainer::ComputeResiduals(const double* adF, CTreeComps* pTreeCom
 //    CTreeComps ptr - ptr to the tree components container in the gbm
 //    int& - reference to the number of nodes in the tree.
 //-----------------------------------
-void CGBMDataContainer::ComputeBestTermNodePreds(const double* adF, CTreeComps* pTreeComp, int& cNodes)
+void CGBMDataContainer::ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp, int& cNodes)
 {
 	pDist->FitBestConstant(&data, &adF[0],
 	                         (2*cNodes+1)/3, // number of terminal nodes
-	                         pTreeComp);
+	                         &adZ[0], pTreeComp);
 }
 
 //-----------------------------------
@@ -150,7 +149,7 @@ void CGBMDataContainer::ComputeBestTermNodePreds(const double* adF, CTreeComps* 
 //    bool - bool which indicates whether it is the training or validation data used.
 //
 //-----------------------------------
-double CGBMDataContainer::ComputeDeviance(const double* adF, CTreeComps* pTreeComp, bool isValidationSet)
+double CGBMDataContainer::ComputeDeviance(const double* adF, bool isValidationSet)
 {
 	if(!(isValidationSet))
 	{
@@ -173,9 +172,9 @@ double CGBMDataContainer::ComputeDeviance(const double* adF, CTreeComps* pTreeCo
 //    CTreeComps ptr - ptr to the tree components container in the gbm
 //
 //-----------------------------------
-double CGBMDataContainer::ComputeBagImprovement(const double* adF, CTreeComps* pTreeComp)
+double CGBMDataContainer::ComputeBagImprovement(const double* adF, const double shrinkage, const double* adFadj)
 {
-	return pDist->BagImprovement(data, &adF[0], data.GetBag(),  pTreeComp);
+	return pDist->BagImprovement(data, &adF[0], data.GetBag(),  shrinkage, adFadj);
 }
 
 //-----------------------------------

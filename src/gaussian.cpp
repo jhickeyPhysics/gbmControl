@@ -143,6 +143,7 @@ void CGaussian::FitBestConstant
 	const CDataset* pData,
     const double *adF,
     unsigned long cTermNodes,
+    double* adZ,
     CTreeComps* pTreeComps
 )
 {
@@ -155,7 +156,8 @@ double CGaussian::BagImprovement
 	const CDataset& data,
     const double *adF,
     const bag& afInBag,
-    const CTreeComps* pTreeComps
+    const double shrinkage,
+    const double* adFadj
 )
 {
     double dReturnValue = 0.0;
@@ -169,8 +171,8 @@ double CGaussian::BagImprovement
         {
             dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
 
-            dReturnValue += data.weight_ptr()[i]*pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]*
-                            (2.0*(data.y_ptr()[i]-dF) - pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]);
+            dReturnValue += data.weight_ptr()[i]*shrinkage*adFadj[i]*
+                            (2.0*(data.y_ptr()[i]-dF) - shrinkage*adFadj[i]);
             dW += data.weight_ptr()[i];
         }
     }

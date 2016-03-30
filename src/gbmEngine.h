@@ -53,7 +53,7 @@ public:
     	    unsigned long cDepth,
     	    unsigned long cMinObsInNode);
 
-    void Iterate(double *adF,
+    void FitLearner(double *adF,
 		 double &dTrainError,
 		 double &dValidError,
 		 double &dOOBagImprove,
@@ -80,6 +80,10 @@ private:
 	CTreeComps* pTreeComp;
     bool fInitialized;          // indicates whether the GBM has been initialized
     bool hasDataAndDist, hasTreeContainer;
+
+    // Residuals and adjustments to function estimate
+    std::vector<double> adZ;
+    std::vector<double> adFadj;
 };
 
 #endif //  __gbmEnginegbm_h__

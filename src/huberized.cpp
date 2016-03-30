@@ -167,6 +167,7 @@ void CHuberized::FitBestConstant
 	const CDataset* pData,
     const double *adF,
     unsigned long cTermNodes,
+    double* adZ,
     CTreeComps* pTreeComps
 )
 {
@@ -223,7 +224,8 @@ double CHuberized::BagImprovement
 	const CDataset& data,
     const double *adF,
     const bag& afInBag,
-    const CTreeComps* pTreeComps
+    const double shrinkage,
+    const double* adFadj
 )
 {
     double dReturnValue = 0.0;
@@ -240,7 +242,7 @@ double CHuberized::BagImprovement
             if( (2*data.y_ptr()[i]-1)*dF < -1 ){
                dReturnValue += data.weight_ptr()[i]*
                    (-4*(2*data.y_ptr()[i]-1)*dF -
-                    -4*(2*data.y_ptr()[i]-1)*(dF+pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]));
+                    -4*(2*data.y_ptr()[i]-1)*(dF+shrinkage*adFadj[i]));
                dW += data.weight_ptr()[i];
             }
             else if ( 1 - (2*data.y_ptr()[i]-1)*dF < 0 ){
@@ -250,7 +252,7 @@ double CHuberized::BagImprovement
             else {
                dReturnValue += data.weight_ptr()[i] *
                   ( ( 1 - (2*data.y_ptr()[i]-1)*dF )*( 1 - (2*data.y_ptr()[i]-1)*dF ) -
-                    ( 1 - (2*data.y_ptr()[i]-1)*(dF+pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]) )*( 1 - (2*data.y_ptr()[i]-1)*(dF+pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]) )
+                    ( 1 - (2*data.y_ptr()[i]-1)*(dF+shrinkage*adFadj[i]) )*( 1 - (2*data.y_ptr()[i]-1)*(dF+shrinkage*adFadj[i]) )
                   );
             }
         }

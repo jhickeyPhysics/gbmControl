@@ -145,6 +145,7 @@ void CTDist::FitBestConstant
 	const CDataset* pData,
     const double *adF,
     unsigned long cTermNodes,
+    double* adZ,
     CTreeComps* pTreeComps
 )
 {
@@ -184,7 +185,8 @@ double CTDist::BagImprovement
 	const CDataset& data,
     const double *adF,
     const bag& afInBag,
-    const CTreeComps* pTreeComps
+    const double shrinkage,
+    const double* adFadj
 )
 {
     double dReturnValue = 0.0;
@@ -197,7 +199,7 @@ double CTDist::BagImprovement
         {
             const double dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
 	    const double dU = (data.y_ptr()[i] - dF);
-	    const double dV = (data.y_ptr()[i] - dF - pTreeComps->GetLambda() * pTreeComps->GetRespAdj()[i]) ;
+	    const double dV = (data.y_ptr()[i] - dF - shrinkage * adFadj[i]) ;
 
             dReturnValue += data.weight_ptr()[i] * (std::log(mdNu + (dU * dU)) - log(mdNu + (dV * dV)));
             dW += data.weight_ptr()[i];

@@ -951,6 +951,7 @@ void CPairwise::FitBestConstant
 	const CDataset* pData,
     const double *adF,
     unsigned long cTermNodes,
+    double* adZ,
     CTreeComps* pTreeComps
 )
 {
@@ -983,7 +984,7 @@ void CPairwise::FitBestConstant
 	  };
 #endif
 
-            vecdNum[pTreeComps->GetNodeAssign()[iObs]]   += pData->weight_ptr()[iObs] * pTreeComps->GetGrad()[iObs];
+            vecdNum[pTreeComps->GetNodeAssign()[iObs]]   += pData->weight_ptr()[iObs] * adZ[iObs];
             vecdDenom[pTreeComps->GetNodeAssign()[iObs]] += pData->weight_ptr()[iObs] * vecdHessian[iObs];
         }
     }
@@ -1013,7 +1014,8 @@ double CPairwise::BagImprovement
 	const CDataset& data,
     const double *adF,
     const bag& afInBag,
-    const CTreeComps* pTreeComps
+    const double shrinkage,
+    const double* adFadj
 )
 {
 
@@ -1061,7 +1063,7 @@ double CPairwise::BagImprovement
                 // Compute score according to new score: adF' =  adF + dStepSize * adFadj
                 for (unsigned int i = 0; i < cNumItems; i++)
                 {
-                    ranker.AddToScore(i, pTreeComps->GetRespAdj()[i+iItemStart] * pTreeComps->GetLambda());
+                    ranker.AddToScore(i, adFadj[i+iItemStart] * shrinkage);
                 }
 
                 const double dWi = data.weight_ptr()[iItemStart];

@@ -248,7 +248,7 @@ void CNode::SplitNode()
 										 aiLeftCategory.begin());
 	}
 
-	dImprovement = childrenParams.ImprovedResiduals ;
+	dImprovement = childrenParams.ImprovedResiduals;
 	pLeftNode    = new CNode(childrenParams.LeftWeightResiduals/childrenParams.LeftTotalWeight, childrenParams.LeftTotalWeight,
 									childrenParams.LeftNumObs, true);
 	pRightNode   = new CNode(childrenParams.RightWeightResiduals/childrenParams.RightTotalWeight,

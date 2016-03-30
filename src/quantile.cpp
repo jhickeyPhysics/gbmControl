@@ -147,6 +147,7 @@ void CQuantile::FitBestConstant
 	const CDataset* pData,
     const double *adF,
     unsigned long cTermNodes,
+    double* adZ,
     CTreeComps* pTreeComps
 )
 {
@@ -186,7 +187,8 @@ double CQuantile::BagImprovement
 	const CDataset& data,
     const double *adF,
     const bag& afInBag,
-    const CTreeComps* pTreeComps
+    const double shrinkage,
+    const double* adFadj
 )
 {
     double dReturnValue = 0.0;
@@ -210,15 +212,15 @@ double CQuantile::BagImprovement
                 dReturnValue += data.weight_ptr()[i]*(1-dAlpha)*(dF-data.y_ptr()[i]);
             }
 
-            if(data.y_ptr()[i] > dF+pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i])
+            if(data.y_ptr()[i] > dF+shrinkage*adFadj[i])
             {
                 dReturnValue -= data.weight_ptr()[i]*dAlpha*
-                                (data.y_ptr()[i] - dF-pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i]);
+                                (data.y_ptr()[i] - dF-shrinkage*adFadj[i]);
             }
             else
             {
                 dReturnValue -= data.weight_ptr()[i]*(1-dAlpha)*
-                                (dF+pTreeComps->GetLambda()*pTreeComps->GetRespAdj()[i] - data.y_ptr()[i]);
+                                (dF+shrinkage*adFadj[i] - data.y_ptr()[i]);
             }
             dW += data.weight_ptr()[i];
         }

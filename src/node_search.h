@@ -33,24 +33,17 @@ public:
     void Initialize(unsigned long cMinObsInNode);
     void GenerateAllSplits(vector<CNode*>& vecpTermNodes, const CDataset& data,
     						double* residuals, vector<unsigned long>& aiNodeAssign);
-    double SplitAndCalcImprovement(vector<CNode*>& vecpTermNodes, const CDataset& data,
+    double SplitAndCalcImprovement(vector<CNode*>& vecpTermNodes,
+    					const CDataset& data,
     					vector<unsigned long>& aiNodeAssign);
 
     void IncorporateObs(double dX,
 			double dZ,
 			double dW,
 			long lMonotone);
-
-    void Set(CNode nodeToSplit);
-    void ResetForNewVar(unsigned long iWhichVar,
-			long cVarClasses);
-    
     void Reset();
 
-    void SetupNewNodes(CNode& nodeToSplit);
-    void AssignToNode(CNode& terminalNode);
-    void EvaluateCategoricalSplit();
-    void WrapUpCurrentVariable();
+
 
     double dInitTotalW;
     double dInitSumZ;
@@ -61,6 +54,12 @@ private:
     //Private methods
     void ReAssignData(long splittedNodeIndex, vector<CNode*>& vecpTermNodes,
     					const CDataset& data, vector<unsigned long>& aiNodeAssign);
+    void AssignToNode(CNode& terminalNode);
+	void EvaluateCategoricalSplit();
+	void WrapUpCurrentVariable();
+	void Set(CNode nodeToSplit);
+	void ResetForNewVar(unsigned long iWhichVar,
+				long cVarClasses);
 
     // Split Parameters
     SplitParams proposedSplit;
