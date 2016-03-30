@@ -37,6 +37,7 @@ CTreeComps::CTreeComps(double dLambda,
 {
 	this-> dLambda = dLambda;
 	this-> cMinObsInNode = cMinObsInNode;
+	aNodeSearch.Initialize(cMinObsInNode);
 	ptreeTemp.reset(new CCARTTree);
 	ptreeTemp->SetDepth(cDepth);
 
@@ -74,7 +75,6 @@ void CTreeComps::TreeInitialize(const CDataset* pData)
 
 	// aiNodeAssign tracks to which node each training obs belongs
 	aiNodeAssign.resize(pData->get_trainSize());
-	aNodeSearch.Initialize(cMinObsInNode);
 }
 
 
@@ -94,7 +94,11 @@ void CTreeComps::GrowTrees(const CDataset* pData, int& cNodes)
 	#ifdef NOISY_DEBUG
 	  Rprintf("Reset tree\n");
 	#endif
+
+	  //Reset tree and searcher
 	  ptreeTemp->Reset();
+	  aNodeSearch.Reset();
+
 	#ifdef NOISY_DEBUG
 	  Rprintf("grow tree\n");
 	#endif

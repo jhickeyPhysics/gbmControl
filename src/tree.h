@@ -39,6 +39,7 @@ public:
 	      unsigned long cMinObsInNode,
 	      std::vector<unsigned long>& aiNodeAssign,
 	      CNodeSearch& aNodeSearch);
+
     void Reset();
 
     CNode* GetRootNode();

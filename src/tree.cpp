@@ -76,102 +76,25 @@ void CCARTTree::grow
 #ifdef NOISY_DEBUG
   Rprintf("Building tree 1 ");
 #endif
+
   cTotalNodeCount = 1;
-  long cTerminalNodes = 1;
   for(long cDepth=0; cDepth < depthOfTree; cDepth++)
   {
 #ifdef NOISY_DEBUG
       Rprintf("%d ",cDepth);
 #endif
       
-      unsigned long iWhichObs = 0;
-      const CDataset::index_vector colNumbers(data.random_order());
-      const CDataset::index_vector::const_iterator final = colNumbers.begin() + data.get_numFeatures();
+    // Generate all splits
+    aNodeSearch.GenerateAllSplits(vecpTermNodes, data, &(adZ[0]), aiNodeAssign);
 
-      // Loop over terminal nodes
-      for(long iNode = 0; iNode < cTerminalNodes; iNode++)
-      {
-    	  aNodeSearch.Set(*vecpTermNodes[iNode]);
-    	  // Loop over variables
-    	  for(CDataset::index_vector::const_iterator it=colNumbers.begin();
-    			  it != final;
-    			  it++)
-    	  {
-
-    		  aNodeSearch.ResetForNewVar(*it, data.varclass(*it));
-    		  // Loop over observations
-    		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
-    		  {
-    			  //Get Observation
-    			  iWhichObs = data.order_ptr()[(*it)*data.get_trainSize() + iOrderObs];
-				  if(aiNodeAssign[iWhichObs] == iNode && data.GetBag()[iWhichObs])
-				  {
-					  const double dX = data.x_value(iWhichObs, *it);
-					  aNodeSearch.IncorporateObs(dX,
-									adZ[iWhichObs],
-									data.weight_ptr()[iWhichObs],
-									data.monotone(*it));
-				  }
-
-    		  }
-
-			  if(data.varclass(*it) != 0) // evaluate if categorical split
-			  {
-				  aNodeSearch.EvaluateCategoricalSplit();
-			  }
-			  aNodeSearch.WrapUpCurrentVariable();
-		  }
-
-    	  // Assign best split to node
-    	  aNodeSearch.AssignToNode(*vecpTermNodes[iNode]);
-	  }
-
-	// search for the best split
-	long iBestNode = 0;
-	double dBestNodeImprovement = 0.0;
-	for(long iNode=0; iNode < cTerminalNodes; iNode++)
-	{
-		if(vecpTermNodes[iNode]->SplitImprovement() > dBestNodeImprovement)
-		{
-			iBestNode = iNode;
-			dBestNodeImprovement = vecpTermNodes[iNode]->SplitImprovement();
-		}
-	}
-
-	if(dBestNodeImprovement == 0.0)
+    // Make the best split if possible
+	if(aNodeSearch.SplitAndCalcImprovement(vecpTermNodes, data, aiNodeAssign) == 0.0)
 	{
 	  break;
 	}
       
       // setup the new nodes and add them to the tree
-      vecpTermNodes[iBestNode]->SplitNode();
       cTotalNodeCount += 3;
-      cTerminalNodes += 2;
-
-
-        // assign observations to the correct node
-      for(long iObs=0; iObs < data.get_trainSize(); iObs++)
-      {
-    	  signed char iWhichNode = aiNodeAssign[iObs];
-
-	  if(iWhichNode==iBestNode)
-	  {
-	      signed char schWhichNode = vecpTermNodes[iBestNode]->WhichNode(data,iObs);
-	      if(schWhichNode == 1) // goes right
-	      {
-	    	  aiNodeAssign[iObs] = cTerminalNodes-2;
-	      }
-	      else if(schWhichNode == 0) // is missing
-	      {
-	    	  aiNodeAssign[iObs] = cTerminalNodes-1;
-	      }
-	      // those to the left stay with the same node assignment
-	  	  }
-      }
-
-      vecpTermNodes[cTerminalNodes-2] = vecpTermNodes[iBestNode]->pRightNode;
-	  vecpTermNodes[cTerminalNodes-1] = vecpTermNodes[iBestNode]->pMissingNode;
-	  vecpTermNodes[iBestNode] = vecpTermNodes[iBestNode]->pLeftNode;
 
     } // end tree growing
 
@@ -214,15 +137,15 @@ void CCARTTree::Predict
 )
 {
 
-    if(pRootNode)
-      {
-        pRootNode->Predict(adX,cRow,cCol,iRow,dFadj);
-        dFadj *= dShrink;
-      }
-    else
-      {
-        dFadj = 0.0;
-      }
+	if(pRootNode)
+	{
+		pRootNode->Predict(adX,cRow,cCol,iRow,dFadj);
+		dFadj *= dShrink;
+	}
+	else
+	{
+		dFadj = 0.0;
+	}
 }
 
 
@@ -234,15 +157,15 @@ void CCARTTree::Adjust
  unsigned long cMinObsInNode
 )
 {
-  unsigned long iObs = 0;
-  
-  pRootNode->Adjust(cMinObsInNode);
+	unsigned long iObs = 0;
 
-  // predict for the training observations
-  for(iObs=0; iObs<aiNodeAssign.size(); iObs++)
-    {
-      adFadj[iObs] = vecpTermNodes[aiNodeAssign[iObs]]->dPrediction;
-    }
+	pRootNode->Adjust(cMinObsInNode);
+
+	// predict for the training observations
+	for(iObs=0; iObs<aiNodeAssign.size(); iObs++)
+	{
+		adFadj[iObs] = vecpTermNodes[aiNodeAssign[iObs]]->dPrediction;
+	}
 }
 
 
@@ -261,6 +184,7 @@ CNode* CCARTTree::GetRootNode()
 {
 	return pRootNode;
 }
+
 const CNode* CCARTTree::GetRootNode() const
 {
 	return pRootNode;
