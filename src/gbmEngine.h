@@ -70,7 +70,7 @@ public:
 			     VEC_VEC_CATEGORIES &vecSplitCodes,
 			     int cCatSplitsOld);
 
-    void InitF(double &dInitF, unsigned long cLength);
+    double InitF();
 
 private:
 	//-------------------

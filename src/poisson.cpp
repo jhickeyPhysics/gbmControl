@@ -55,11 +55,9 @@ void CPoisson::ComputeWorkingResponse
 
 
 
-void CPoisson::InitF
+double CPoisson::InitF
 (
-	const CDataset* pData,
-    double &dInitF,
-    unsigned long cLength
+	const CDataset* pData
 )
 {
     double dSum = 0.0;
@@ -68,7 +66,7 @@ void CPoisson::InitF
 
     if(pData->offset_ptr(false) == NULL)
     {
-        for(i=0; i<cLength; i++)
+        for(i=0; i<pData->get_trainSize(); i++)
         {
             dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
             dDenom += pData->weight_ptr()[i];
@@ -76,14 +74,14 @@ void CPoisson::InitF
     }
     else
     {
-        for(i=0; i<cLength; i++)
+        for(i=0; i<pData->get_trainSize(); i++)
         {
             dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
             dDenom += pData->weight_ptr()[i]*std::exp(pData->offset_ptr(false)[i]);
         }
     }
 
-    dInitF = std::log(dSum/dDenom);
+    return std::log(dSum/dDenom);
 }
 
 

@@ -65,11 +65,9 @@ void CTweedie::ComputeWorkingResponse
 }
 
 
-void CTweedie::InitF
+double CTweedie::InitF
 (
- const CDataset* pData,
- double &dInitF, 
- unsigned long cLength
+ const CDataset* pData
 )
 {	
     double dSum=0.0;
@@ -77,10 +75,11 @@ void CTweedie::InitF
     double Min = -19.0;
     double Max = +19.0;
     unsigned long i=0;
+    double dInitF = 0.0;
 
     if(pData->offset_ptr(false)==NULL)
       {
-	for(i=0; i<cLength; i++)
+	for(i=0; i<pData->get_trainSize(); i++)
 	  {
 	    dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
 	    dTotalWeight += pData->weight_ptr()[i];
@@ -88,7 +87,7 @@ void CTweedie::InitF
       }
     else
       {
-	for(i=0; i<cLength; i++)
+	for(i=0; i<pData->get_trainSize(); i++)
 	  {
 	    dSum += pData->weight_ptr()[i]*pData->y_ptr()[i]*std::exp(pData->offset_ptr(false)[i]*(1.0-dPower));
 	    dTotalWeight += pData->weight_ptr()[i]*std::exp(pData->offset_ptr(false)[i]*(2.0-dPower));
@@ -100,6 +99,8 @@ void CTweedie::InitF
     
     if (dInitF < Min) { dInitF = Min; }
     if (dInitF > Max) { dInitF = Max; }
+
+    return dInitF;
 }
 
 

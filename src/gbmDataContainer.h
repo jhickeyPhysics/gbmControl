@@ -45,7 +45,7 @@ public:
 	// Public Functions
 	//---------------------
     void Initialize();
-    void InitializeFunctionEstimate(double &dInitF, unsigned long cLength);
+    double InitialFunctionEstimate();
     void ComputeResiduals(const double* adF, double* adZ);
     void ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp, int& cNodes);
     double ComputeDeviance(const double *adF, bool isValidationSet=false);

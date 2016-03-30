@@ -10,9 +10,9 @@ CGBM::CGBM()
     hasDataAndDist = false;
     hasTreeContainer = false;
 
-    // Containers
-    pDataCont = NULL;
-    pTreeComp = NULL;
+    // Initialize distributions
+
+
 
 
 }
@@ -152,7 +152,7 @@ void CGBM::GBMTransferTreeToRList
 				 cCatSplitsOld);
 }
 
-void CGBM::InitF(double &dInitF, unsigned long cLength)
+double CGBM::InitF()
 {
-	pDataCont->InitializeFunctionEstimate(dInitF, cLength);
+	return pDataCont->InitialFunctionEstimate();
 }

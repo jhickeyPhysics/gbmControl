@@ -83,14 +83,13 @@ SEXP gbm
     
     // initialize the GBM
     GBM.Initialize();
-    double dInitF;
+    double dInitF = GBM.InitF();
     Rcpp::NumericMatrix tempX(radX);
     Rcpp::NumericVector adF(tempX.nrow());
 
     if(ISNA(adFold[0])) // check for old predictions
     {
       // set the initial value of F as a constant
-      GBM.InitF(dInitF, cTrain);
       adF.fill(dInitF);
     }
     else

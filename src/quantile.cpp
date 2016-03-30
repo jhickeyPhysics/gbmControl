@@ -61,25 +61,20 @@ void CQuantile::ComputeWorkingResponse
 }
 
 
-void CQuantile::InitF
+double CQuantile::InitF
 (
-	const CDataset* pData,
-    double &dInitF,
-    unsigned long cLength
+	const CDataset* pData
 )
 {
     double dOffset=0.0;
-    unsigned long i=0;
-    int nLength = int(cLength);
-
-    vecd.resize(cLength);
-    for(i=0; i<cLength; i++)
+    vecd.resize(pData->get_trainSize());
+    for(long i=0; i< pData->get_trainSize(); i++)
     {
         dOffset = (pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[i];
         vecd[i] = pData->y_ptr()[i] - dOffset;
     }
 
-    dInitF = mpLocM.weightedQuantile(nLength, &vecd[0], pData->weight_ptr(), dAlpha);
+    return mpLocM.weightedQuantile(pData->get_trainSize(), &vecd[0], pData->weight_ptr(), dAlpha);
 }
 
 

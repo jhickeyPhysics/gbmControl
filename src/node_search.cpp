@@ -66,7 +66,7 @@ void CNodeSearch::GenerateAllSplits
 		  {
 			  //Get Observation and add to split if needed
 			  iWhichObs = data.order_ptr()[(*it)*data.get_trainSize() + iOrderObs];
-			  if(aiNodeAssign[iWhichObs] == iNode && data.GetBag()[iWhichObs])
+			  if((aiNodeAssign[iWhichObs] == iNode) && data.GetBag()[iWhichObs])
 			  {
 				  const double dX = data.x_value(iWhichObs, *it);
 				  IncorporateObs(dX,

@@ -61,26 +61,23 @@ void CLaplace::ComputeWorkingResponse
 
 
 
-void CLaplace::InitF
+double CLaplace::InitF
 (
-	const CDataset* pData,
-    double &dInitF,
-    unsigned long cLength
+	const CDataset* pData
 )
 {
   double dOffset = 0.0;
   unsigned long ii = 0;
-  int nLength = int(cLength);
+
+  std::vector<double> adArr(pData->get_trainSize());
   
-  std::vector<double> adArr(cLength);
-  
-  for (ii = 0; ii < cLength; ii++)
+  for (ii = 0; ii < pData->get_trainSize(); ii++)
     {
       dOffset = (pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[ii];
       adArr[ii] = pData->y_ptr()[ii] - dOffset;
     }
   
-  dInitF = mpLocM.weightedQuantile(nLength, &adArr[0], pData->weight_ptr(), 0.5); // median
+  return mpLocM.weightedQuantile(pData->get_trainSize(), &adArr[0], pData->weight_ptr(), 0.5); // median
 }
 
 

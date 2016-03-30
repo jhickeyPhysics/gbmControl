@@ -62,20 +62,16 @@ void CHuberized::ComputeWorkingResponse
    }
 }
 
-void CHuberized::InitF
+double CHuberized::InitF
 (
-	const CDataset* pData,
-    double &dInitF,
-    unsigned long cLength
+	const CDataset* pData
 )
 {
     unsigned long i=0;
     double dNum = 0.0;
     double dDen = 0.0;
 
-    dInitF = 0.0;
-
-    for(i=0; i<cLength; i++)
+    for(i=0; i<pData->get_trainSize(); i++)
     {
         if(pData->y_ptr()[i]==1.0)
         {
@@ -87,7 +83,7 @@ void CHuberized::InitF
         }
     }
 
-    dInitF = dNum/dDen;
+    return dNum/dDen;
 }
 
 

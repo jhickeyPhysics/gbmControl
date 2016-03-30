@@ -98,9 +98,9 @@ void CGBMDataContainer::Initialize()
 //    unsigned long - the number of predictors the fit must provide response estimates for
 //
 //-----------------------------------
-void CGBMDataContainer::InitializeFunctionEstimate(double& dInitF, unsigned long cLength)
+double CGBMDataContainer::InitialFunctionEstimate()
 {
-	pDist->InitF(&data, dInitF, cLength);
+	return pDist->InitF(&data);
 }
 
 //-----------------------------------

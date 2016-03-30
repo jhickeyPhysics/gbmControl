@@ -71,8 +71,7 @@ public:
     								const double *adF,
 									double *adZ) = 0;
 
-    virtual void InitF(const CDataset* pData, double &dInitF,
-    		       unsigned long cLength) = 0;
+    virtual double InitF(const CDataset* pData) = 0;
 
     virtual double Deviance(const CDataset* pData, const double *adF,
                             bool isValidationSet=false) = 0;

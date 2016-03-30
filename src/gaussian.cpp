@@ -16,6 +16,7 @@
 //----------------------------------------
 CGaussian::CGaussian(SEXP radMisc): CDistribution(radMisc)
 {
+
 }
 
 //----------------------------------------
@@ -61,11 +62,9 @@ void CGaussian::ComputeWorkingResponse
     }
 }
 
-void CGaussian::InitF
+double CGaussian::InitF
 (
-	const CDataset* pData,
-    double &dInitF,
-    unsigned long cLength
+	const CDataset* pData
 )
 {
     double dSum=0.0;
@@ -75,7 +74,7 @@ void CGaussian::InitF
     // compute the mean
     if(pData->offset_ptr(false)==NULL)
     {
-        for(i=0; i<cLength; i++)
+        for(i=0; i<pData->get_trainSize(); i++)
         {
             dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
             dTotalWeight += pData->weight_ptr()[i];
@@ -83,13 +82,14 @@ void CGaussian::InitF
     }
     else
     {
-        for(i=0; i<cLength; i++)
+        for(i=0; i<pData->get_trainSize(); i++)
         {
             dSum += pData->weight_ptr()[i]*(pData->y_ptr()[i] - pData->offset_ptr(false)[i]);
             dTotalWeight += pData->weight_ptr()[i];
         }
     }
-    dInitF = dSum/dTotalWeight;
+
+    return dSum/dTotalWeight;
 }
 
 

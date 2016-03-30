@@ -45,10 +45,8 @@ public:
 				const double *adF,
 				  double *adZ);
 
-	void InitF(const CDataset* pData,
-			double &dInitF,
-			unsigned long cLength);
-  
+	double InitF(const CDataset* pData);
+
 	void FitBestConstant(const CDataset* pData,
 				   const double *adF,
 		       	   unsigned long cTermNodes,

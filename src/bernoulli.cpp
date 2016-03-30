@@ -62,20 +62,19 @@ void CBernoulli::ComputeWorkingResponse
 }
 
 
-void CBernoulli::InitF
+double CBernoulli::InitF
 (
-	const CDataset* pData,
-    double &dInitF,
-    unsigned long cLength
+	const CDataset* pData
 )
 {
     unsigned long i=0;
     double dTemp=0.0;
+    double dInitF = 0.0;
 
     if(pData->offset_ptr(false)==NULL)
     {
         double dSum=0.0;
-        for(i=0; i<cLength; i++)
+        for(i=0; i<pData->get_trainSize(); i++)
         {
             dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
             dTemp += pData->weight_ptr()[i];
@@ -94,7 +93,7 @@ void CBernoulli::InitF
         {
             dNum=0.0;
             dDen=0.0;
-            for(i=0; i<cLength; i++)
+            for(i=0; i<pData->get_trainSize(); i++)
             {
                 dTemp = 1.0/(1.0+std::exp(-(pData->offset_ptr(false)[i] + dInitF)));
                 dNum += pData->weight_ptr()[i]*(pData->y_ptr()[i]-dTemp);
@@ -104,6 +103,8 @@ void CBernoulli::InitF
             dInitF += dNewtonStep;
         }
     }
+
+    return dInitF;
 }
 
 double CBernoulli::Deviance

@@ -862,14 +862,12 @@ void CPairwise::Initialize
 #endif
 }
 
-void CPairwise::InitF
+double CPairwise::InitF
 (
-	const CDataset* pData,
-    double &dInitF,
-    unsigned long cLength
+	const CDataset* pData
 )
 {
-    dInitF = 0.0;
+    return 0.0;
 }
 
 

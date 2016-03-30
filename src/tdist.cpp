@@ -67,28 +67,22 @@ void CTDist::ComputeWorkingResponse
 }
 
 
-void CTDist::InitF
+double CTDist::InitF
 (
-	const CDataset* pData,
-    double &dInitF,
-    unsigned long cLength
+	const CDataset* pData
 )
 {
 
-	// Local variables
-	int ii;
-
 	// Get objects to pass into the LocM function
-	int iN = int(cLength);
-	std::vector<double> adArr(cLength);
+	std::vector<double> adArr(pData->get_trainSize());
 
-	for (ii = 0; ii < iN; ii++)
+	for (long ii = 0; ii < pData->get_trainSize(); ii++)
 	{
 		double dOffset = (pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[ii];
 		adArr[ii] = pData->y_ptr()[ii] - dOffset;
 	}
 
-	dInitF = mpLocM.LocationM(iN, &adArr[0], pData->weight_ptr(), 0.5);
+	return mpLocM.LocationM(pData->get_trainSize(), &adArr[0], pData->weight_ptr(), 0.5);
 }
 
 double CTDist::Deviance

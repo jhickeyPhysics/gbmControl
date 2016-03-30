@@ -90,14 +90,12 @@ void CCoxPH::ComputeWorkingResponse
 
 
 
-void CCoxPH::InitF
+double CCoxPH::InitF
 (
-	const CDataset* pData,
-    double &dInitF,
-    unsigned long cLength
+	const CDataset* pData
 )
 {
-    dInitF = 0.0;
+    return 0.0;
 }
 
 

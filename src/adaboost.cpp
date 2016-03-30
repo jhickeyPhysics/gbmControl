@@ -60,22 +60,18 @@ void CAdaBoost::ComputeWorkingResponse
 
 
 
-void CAdaBoost::InitF
+double CAdaBoost::InitF
 (
- const CDataset* pData,
- double &dInitF,
- unsigned long cLength
+ const CDataset* pData
 )
 {
     unsigned long i=0;
     double dNum = 0.0;
     double dDen = 0.0;
 
-    dInitF = 0.0;
-
     if(pData->offset_ptr(false) == NULL)
     {
-      for(i=0; i<cLength; i++)
+      for(i=0; i< pData->get_trainSize(); i++)
         {
 	  if(pData->y_ptr()[i]==1.0)
             {
@@ -89,7 +85,7 @@ void CAdaBoost::InitF
     }
     else
       {
-        for(i=0; i<cLength; i++)
+        for(i=0; i< pData->get_trainSize(); i++)
         {
 	  if(pData->y_ptr()[i]==1.0)
             {
@@ -102,7 +98,7 @@ void CAdaBoost::InitF
         }
       }
     
-    dInitF = 0.5*std::log(dNum/dDen);
+    return 0.5*std::log(dNum/dDen);
 }
 
 

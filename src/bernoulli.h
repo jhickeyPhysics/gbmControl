@@ -50,9 +50,7 @@ public:
     				const double *adF,
                     bool isValidationSet=false);
 
-    void InitF(const CDataset* pData,
-    		double &dInitF,
-	       unsigned long cLength);
+    double InitF(const CDataset* pData);
 
     void FitBestConstant(const CDataset* pData,
     		const double *adF,

@@ -7,6 +7,7 @@ CCARTTree::CCARTTree()
 {
     pRootNode = NULL;
     dShrink = 1.0;
+
 }
 
 
@@ -18,6 +19,7 @@ CCARTTree::~CCARTTree()
 void CCARTTree::Reset()
 {
   delete pRootNode;
+  vecpTermNodes.resize(2*depthOfTree + 1, NULL);
 }
 
 
@@ -53,6 +55,7 @@ void CCARTTree::grow
   Rprintf("initial tree calcs\n");
 #endif
 
+  // Move to data -- FOR TIME BEING
 	for(long iObs=0; iObs<data.get_trainSize(); iObs++)
 	{
 		// aiNodeAssign tracks to which node each training obs belongs
@@ -68,8 +71,8 @@ void CCARTTree::grow
 	}
 
   dError = dSumZ2-dSumZ*dSumZ/dTotalW;
+
   pRootNode = new CNode(dSumZ/dTotalW, dTotalW, data.GetTotalInBag(), true);
-  vecpTermNodes.resize(2*depthOfTree + 1,NULL); // accounts for missing nodes
   vecpTermNodes[0] = pRootNode;
 
   // build the tree structure
