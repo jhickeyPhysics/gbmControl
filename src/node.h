@@ -91,7 +91,8 @@ public:
 	CNode* pRightNode;
 	CNode* pMissingNode;
 
-	// Splitting parameters
+	// Parameters
+	SplitParams nodeParams;
 	SplitParams childrenParams;
 
 	// This nodes parameters
@@ -108,7 +109,6 @@ public:
 
 	// VARIABLES USED IN NODE SPLITTING
 	std::vector<unsigned long> aiLeftCategory;
-	std::vector<int> splitCategory;
     double dSplitValue;
 };
 

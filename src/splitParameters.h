@@ -34,13 +34,24 @@ public:
 	// Public Functions
 	//---------------------
 	void ResetSplitProperties(double weightedResiduals, double trainingWeight, long numObs,
-							 double splitValue = -HUGE_VAL, long variableClasses=0, long splitVar = UINT_MAX);
+							 double splitValue = -HUGE_VAL, long variableClasses=1, long splitVar = UINT_MAX);
 	void UpdateMissingNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
 	void UpdateLeftNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
 	bool SplitIsCorrMonotonic(long specifyMonotone);
 	void NodeGradResiduals();
 	bool HasMinNumOfObs(long minObsInNode);
-
+	void setBestCategory(std::vector<std::pair<double, int> > groupMeanAndCat)
+	{
+		int count = 0;
+		aiBestCategory.resize(groupMeanAndCat.size());
+		for(std::vector<std::pair<double, int> >::const_iterator it = groupMeanAndCat.begin();
+				it != groupMeanAndCat.end();
+				++it)
+		{
+			aiBestCategory[count] = it->second;
+			count++;
+		}
+	};
 	SplitParams& operator=(const SplitParams rhs)
 	{
 		RightWeightResiduals = rhs.RightWeightResiduals;
@@ -59,6 +70,10 @@ public:
 		SplitVar = rhs.SplitVar;
 		SplitClass = rhs.SplitClass;
 		ImprovedResiduals = rhs.ImprovedResiduals;
+
+		// Copy best category
+		aiBestCategory.resize(rhs.aiBestCategory.size(), 0);
+		std::copy(rhs.aiBestCategory.begin(), rhs.aiBestCategory.end(), aiBestCategory.begin());
 
 
 	}
@@ -84,6 +99,7 @@ public:
 	double SplitValue; // Continuous Split Value
 	long SplitVar; // Which feature to split on
 	long SplitClass; // Categorical Split Value
+    std::vector<int> aiBestCategory; // Vector of levels ordering
 	double ImprovedResiduals;
 
 };

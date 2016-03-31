@@ -22,6 +22,7 @@
 #include "node.h"
 #include "splitParameters.h"
 
+
 using namespace std;
 
 class CNodeSearch
@@ -75,23 +76,9 @@ private:
     std::vector<double> adGroupSumZ;
     std::vector<double> adGroupW;
     std::vector<unsigned long> acGroupN;
-
-    // Has to be int for r_sort_index
-    // Make both int? - Can we remove both of these?!
-    std::vector<int> aiBestCategory;
     std::vector<pair<double, int> > groupdMeanAndCategory;
 
-    void getCategory()
-    {
-    	int count = 0;
-    	for(std::vector<pair<double, int> >::const_iterator it = groupdMeanAndCategory.begin();
-    			it != groupdMeanAndCategory.end();
-    			++it)
-    	{
-    		aiBestCategory[count] = it->second;
-    		count++;
-    	}
-    };
+
 
 
 

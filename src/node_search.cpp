@@ -14,7 +14,6 @@ CNodeSearch::CNodeSearch()
     adGroupSumZ.resize(1024);
     adGroupW.resize(1024);
     acGroupN.resize(1024);
-    aiBestCategory.resize(1024);
     groupdMeanAndCategory.resize(1024);
 }
 
@@ -130,7 +129,7 @@ void CNodeSearch::GenerateAllSplits
 	  {
 
 		  ResetForNewVar(*it, data.varclass(*it));
-       bool varIsCategorical = (bool) data.varclass(*it);
+		  bool varIsCategorical = (bool) data.varclass(*it);
 
 		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
 		  {
@@ -157,7 +156,6 @@ void CNodeSearch::GenerateAllSplits
 			  }
 
 		  }
-
 		  if(data.varclass(*it) != 0) // evaluate if categorical split
 		  {
 			  EvaluateCategoricalSplit();
@@ -337,14 +335,12 @@ void CNodeSearch::EvaluateCategoricalSplit()
       proposedSplit.UpdateLeftNode(adGroupSumZ[groupdMeanAndCategory[i].second], adGroupW[groupdMeanAndCategory[i].second],
     		  	  	  	  	  	  acGroupN[groupdMeanAndCategory[i].second]);
       proposedSplit.NodeGradResiduals();
+      proposedSplit.setBestCategory(groupdMeanAndCategory);
 
       if(proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
 	 (proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals))
         {
-
       	  bestSplit = proposedSplit;
-      	  getCategory();
-
         }
     }
 }
@@ -355,5 +351,4 @@ void CNodeSearch::EvaluateCategoricalSplit()
 void CNodeSearch::AssignToNode(CNode& terminalNode)
 {
 	terminalNode.childrenParams =  bestSplit;
-	terminalNode.splitCategory = aiBestCategory;
 }

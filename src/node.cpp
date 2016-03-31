@@ -243,9 +243,10 @@ void CNode::SplitNode()
 		isContinuous = false;
 		iSplitVar = childrenParams.SplitVar;
 		aiLeftCategory.resize(1 + (ULONG)childrenParams.SplitValue);
-							  std::copy(splitCategory.begin(),
-									  	  splitCategory.begin() + aiLeftCategory.size(),
-										 aiLeftCategory.begin());
+
+		  std::copy(childrenParams.aiBestCategory.begin(),
+					childrenParams.aiBestCategory.begin() + aiLeftCategory.size(),
+					 aiLeftCategory.begin());
 	}
 
 	dImprovement = childrenParams.ImprovedResiduals;
