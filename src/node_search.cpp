@@ -14,9 +14,8 @@ CNodeSearch::CNodeSearch()
     adGroupSumZ.resize(1024);
     adGroupW.resize(1024);
     acGroupN.resize(1024);
-    adGroupMean.resize(1024);
-    aiCurrentCategory.resize(1024);
     aiBestCategory.resize(1024);
+    groupdMeanAndCategory.resize(1024);
 }
 
 
@@ -285,27 +284,29 @@ void CNodeSearch::EvaluateCategoricalSplit()
   cFiniteMeans = 0;
   for(i=0; i < proposedSplit.SplitClass; i++)
     {
-      aiCurrentCategory[i] = i;
+      groupdMeanAndCategory[i].second = i;
+
       if(adGroupW[i] != 0.0)
       {
-    	  adGroupMean[i] = adGroupSumZ[i]/adGroupW[i];
+    	  groupdMeanAndCategory[i].first = adGroupSumZ[i]/adGroupW[i];
     	  cFiniteMeans++;
       }
       else
       {
-    	  adGroupMean[i] = HUGE_VAL;
+    	  groupdMeanAndCategory[i].first = HUGE_VAL;
       }
     }
   
-  rsort_with_index(&adGroupMean[0], &aiCurrentCategory[0], proposedSplit.SplitClass);
-    
+  std::sort(groupdMeanAndCategory.begin(), groupdMeanAndCategory.begin() + proposedSplit.SplitClass);
+
+
   // if only one group has a finite mean it will not consider
   // might be all are missing so no categories enter here
   for(i=0; (cFiniteMeans>1) && ((ULONG)i<cFiniteMeans-1); i++)
     {
       proposedSplit.SplitValue = (double)i;
-      proposedSplit.UpdateLeftNode(adGroupSumZ[aiCurrentCategory[i]], adGroupW[aiCurrentCategory[i]],
-    		  	  	  	  	  	  acGroupN[aiCurrentCategory[i]]);
+      proposedSplit.UpdateLeftNode(adGroupSumZ[groupdMeanAndCategory[i].second], adGroupW[groupdMeanAndCategory[i].second],
+    		  	  	  	  	  	  acGroupN[groupdMeanAndCategory[i].second]);
       proposedSplit.NodeGradResiduals();
 
       if(proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
@@ -313,10 +314,7 @@ void CNodeSearch::EvaluateCategoricalSplit()
         {
 
       	  bestSplit = proposedSplit;
-
-      	  std::copy(aiCurrentCategory.begin(),
-      				aiCurrentCategory.end(),
-      				aiBestCategory.begin());
+      	  getCategory();
 
         }
     }
