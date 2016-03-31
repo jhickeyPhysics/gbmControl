@@ -34,7 +34,7 @@ public:
     CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
             SEXP radWeight, SEXP racVarClasses,
             SEXP ralMonotoneVar, SEXP radMisc, const std::string& family,
-            int cTrain, int cFeatures, int& cGroups, double bagFraction);
+            int cTrain, int cFeatures, double bagFraction);
 
 	//---------------------
 	// Public destructor
@@ -47,7 +47,7 @@ public:
     void Initialize();
     double InitialFunctionEstimate();
     void ComputeResiduals(const double* adF, double* adZ);
-    void ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp, long cNodes);
+    void ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp);
     double ComputeDeviance(const double *adF, bool isValidationSet=false);
     double ComputeBagImprovement(const double* adF, const double shrinkage, const double* adFadj);
     void BagData();

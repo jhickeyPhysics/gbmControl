@@ -24,14 +24,13 @@ public:
 	//----------------------
 	CDImpl(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
 		SEXP radWeight, SEXP racVarClasses, SEXP ralMonotoneVar,
-		const int cTrain, const int cFeatures, const int numGroups, const double fractionInBag):
+		const int cTrain, const int cFeatures, const double fractionInBag):
 		adY(radY), adOffset(radOffset), adWeight(radWeight), adX(radX),
 		acVarClasses(racVarClasses), alMonotoneVar(ralMonotoneVar),
 		aiXOrder(raiXOrder), numOfTrainData(cTrain), numOfFeatures(cFeatures),
 		fHasOffset(GBM_FUNC::has_value(adOffset))
 	{
 
-		cGroups = numGroups;
 		bagFraction = fractionInBag;
 		totalInBag = (long) (fractionInBag * cTrain);
 		cValid = adX.nrow() - cTrain;
@@ -124,9 +123,6 @@ public:
 		bool fHasOffset;
 		bool pointAtTrainSet;
 
-		// Store the groups
-		long cGroups;
-
 		// Bagged  data
 		bag afInBag;
 		double bagFraction;
@@ -160,13 +156,12 @@ public:
 //-----------------------------------
 CDataset::CDataset(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
 					SEXP radWeight, SEXP racVarClasses, SEXP ralMonotoneVar,
-					const int cTrain, const int cFeatures, const int numGroups,
-					const double fractionInBag)
+					const int cTrain, const int cFeatures, const double fractionInBag)
 {
 	// Set up the pimpl
 	dataImpl = new CDImpl(radY, radOffset, radX, raiXOrder,
 								radWeight, racVarClasses, ralMonotoneVar, cTrain,
-								cFeatures, numGroups, fractionInBag);
+								cFeatures, fractionInBag);
 
 	// Check for errors on initialization
 	if (dataImpl-> adX.ncol() != dataImpl-> alMonotoneVar.size())
@@ -477,10 +472,6 @@ double CDataset::GetBagFraction() const
 	return dataImpl->bagFraction;
 }
 
-int CDataset::GetNoGroups() const
-{
-	return dataImpl->cGroups;
-}
 
 unsigned long CDataset::GetValidSize() const
 {
@@ -527,10 +518,6 @@ void CDataset::FillRemainderOfBag(long offset)
 	std::fill((dataImpl->afInBag).begin() + offset, (dataImpl->afInBag).end(), false);
 }
 
-void CDataset::SetNoGroups(int noGroups)
-{
-	dataImpl->cGroups = noGroups;
-}
 
 
 

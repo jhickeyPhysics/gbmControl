@@ -263,8 +263,8 @@ class CPairwise : public CDistribution
 public:
 
 	static CDistribution* Create(SEXP radMisc,
-										const char* szIRMeasure,
-										int& cGroups, int& cTrain);
+								const char* szIRMeasure,
+								int& cTrain);
 
     virtual ~CPairwise();
 
@@ -294,7 +294,7 @@ public:
 protected:
 
     // Constructor: determine IR measure as either "conc", "map", "mrr", or "ndcg"
-    CPairwise(SEXP radMisc, const char* szIRMeasure, int& cGroups, int& cTrain);
+    CPairwise(SEXP radMisc, const char* szIRMeasure, int& cTrain);
 
     // Calculate and accumulate up the gradients and Hessians from all training pairs
     void ComputeLambdas(int iGroup, unsigned int cNumItems, const double* const adY, const double* const adF, const double* const adWeight, double* adZ, double* adDeriv);

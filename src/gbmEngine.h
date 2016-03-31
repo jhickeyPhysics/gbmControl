@@ -47,7 +47,7 @@ public:
     void SetDataAndDistribution(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
             SEXP radWeight, SEXP racVarClasses,
             SEXP ralMonotoneVar, SEXP radMisc, const std::string& family,
-    		const int cTrain, const int cFeatures, int& cGroups, double bagFraction);
+    		const int cTrain, const int cFeatures, double bagFraction);
 
     void SetTreeContainer(double dLambda,
     	    unsigned long cDepth,

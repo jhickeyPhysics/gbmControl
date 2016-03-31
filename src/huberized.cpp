@@ -23,8 +23,8 @@ CHuberized::CHuberized(SEXP radMisc): CDistribution(radMisc)
 //----------------------------------------
 
 CDistribution* CHuberized::Create(SEXP radMisc,
-										const char* szIRMeasure,
-										int& cGroups, int& cTrain)
+								 const char* szIRMeasure,
+								 int& cTrain)
 {
 	return new CHuberized(radMisc);
 }

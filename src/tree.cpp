@@ -3,10 +3,9 @@
 
 #include "tree.h"
 
-CCARTTree::CCARTTree()
+CCARTTree::CCARTTree(double shrinkage):shrinkageConst(shrinkage)
 {
     pRootNode = NULL;
-    dShrink = 1.0;
 
 }
 
@@ -128,7 +127,7 @@ void CCARTTree::PredictValid
   for(i=data.nrow() - nValid; i<data.nrow(); i++)
     {
       pRootNode->Predict(data, i, adFadj[i]);
-      adFadj[i] *= dShrink;
+      adFadj[i] *= shrinkageConst;
     }
 }
 
@@ -147,7 +146,7 @@ void CCARTTree::Predict
 	if(pRootNode)
 	{
 		pRootNode->Predict(adX,cRow,cCol,iRow,dFadj);
-		dFadj *= dShrink;
+		dFadj *= shrinkageConst;
 	}
 	else
 	{
@@ -181,7 +180,7 @@ void CCARTTree::Print()
     if(pRootNode)
     {
       pRootNode->PrintSubtree(0);
-      Rprintf("shrinkage: %f\n",dShrink);
+      Rprintf("shrinkage: %f\n",shrinkageConst);
       Rprintf("initial error: %f\n\n",dError);
     }
 }

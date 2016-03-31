@@ -60,8 +60,7 @@ public:
 	std::vector<unsigned long> GetNodeAssign();
 	vector<CNode*> GetTermNodes();
 
-	double GetLambda();
-	const double GetLambda() const;
+	const double ShrinkageConstant() const;
 	unsigned long GetMinNodeObs();
 	long GetSizeOfTree();
 	const long GetSizeOfTree() const;
@@ -77,7 +76,6 @@ private:
     CNodeSearch aNodeSearch;
     std::auto_ptr<CCARTTree> ptreeTemp;
 
-    double dLambda;
     unsigned long cMinObsInNode;
 };
 

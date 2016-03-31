@@ -35,10 +35,9 @@ CTreeComps::CTreeComps(double dLambda,
 	    unsigned long cDepth,
 	    unsigned long cMinObsInNode)
 {
-	this-> dLambda = dLambda;
 	this-> cMinObsInNode = cMinObsInNode;
 	aNodeSearch.Initialize(cMinObsInNode);
-	ptreeTemp.reset(new CCARTTree);
+	ptreeTemp.reset(new CCARTTree(dLambda));
 	ptreeTemp->SetDepth(cDepth);
 
 }
@@ -130,7 +129,7 @@ void CTreeComps::AdjustAndShrink(double * adFadj)
 	ptreeTemp->Adjust(aiNodeAssign,
 	                  &(adFadj[0]),
 	                  cMinObsInNode);
-	ptreeTemp->SetShrinkage(dLambda);
+
 	#ifdef NOISY_DEBUG
 	  ptreeTemp->Print();
 	#endif
@@ -174,7 +173,7 @@ void CTreeComps::TransferTreeToRList(const CDataset &pData,
 													   adPred,
 													   vecSplitCodes,
 													   cCatSplitsOld,
-													   dLambda);
+													   ptreeTemp->GetShrinkageConst());
 	}
 	else
 	{
@@ -236,14 +235,9 @@ vector<CNode*> CTreeComps::GetTermNodes()
 // Parameters: none
 //
 //-----------------------------------
-double CTreeComps::GetLambda()
+const double CTreeComps::ShrinkageConstant() const
 {
-	return dLambda;
-}
-
-const double CTreeComps::GetLambda() const
-{
-	return dLambda;
+	return ptreeTemp->GetShrinkageConst();
 }
 
 //-----------------------------------

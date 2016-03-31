@@ -27,12 +27,12 @@ CGBM::~CGBM()
 void CGBM::SetDataAndDistribution(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
         SEXP radWeight, SEXP racVarClasses,
         SEXP ralMonotoneVar, SEXP radMisc, const std::string& family,
-		const int cTrain, const int cFeatures, int& cGroups, double bagFraction)
+		const int cTrain, const int cFeatures, double bagFraction)
 {
 
 	pDataCont=new CGBMDataContainer(radY, radOffset, radX, raiXOrder,
 	        radWeight, racVarClasses, ralMonotoneVar, radMisc, family,
-	        cTrain, cFeatures, cGroups, bagFraction);
+	        cTrain, cFeatures, bagFraction);
 
 	// Set up residuals container
 	adZ.assign(pDataCont->getData()->nrow(), 0);
@@ -98,17 +98,17 @@ void CGBM::FitLearner
 #endif
 
   // Adjust terminal node predictions and shrink
-  pDataCont->ComputeBestTermNodePreds(&adF[0], &adZ[0], pTreeComp, pTreeComp->GetSizeOfTree());
+  pDataCont->ComputeBestTermNodePreds(&adF[0], &adZ[0], pTreeComp);
   pTreeComp->AdjustAndShrink(&adFadj[0]);
 
   // Compute the error improvement within bag
-  dOOBagImprove = pDataCont->ComputeBagImprovement(&adF[0], pTreeComp->GetLambda(), &adFadj[0]);
+  dOOBagImprove = pDataCont->ComputeBagImprovement(&adF[0], pTreeComp->ShrinkageConstant(), &adFadj[0]);
 
   // Update the function estimate
   unsigned long i = 0;
   for(i=0; i < pDataCont->getData()->get_trainSize(); i++)
   {
-    adF[i] += pTreeComp->GetLambda() * adFadj[i];
+    adF[i] += pTreeComp->ShrinkageConstant() * adFadj[i];
 
   }
 

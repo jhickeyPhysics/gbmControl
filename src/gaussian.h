@@ -28,8 +28,8 @@ public:
 	// Factory Function
 	//---------------------
 	static CDistribution* Create(SEXP radMisc,
-											const char* szIRMeasure,
-											int& cGroups, int& cTrain);
+								 const char* szIRMeasure,
+								 int& cTrain);
 
 	//---------------------
 	// Public destructor

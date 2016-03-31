@@ -26,12 +26,11 @@
 CGBMDataContainer::CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
         SEXP radWeight, SEXP racVarClasses,
         SEXP ralMonotoneVar, SEXP radMisc, const std::string& family, int cTrain,
-        int cFeatures, int& cGroups, double fractionInBag):
+        int cFeatures, double fractionInBag):
         data(radY, radOffset, radX, raiXOrder,
-    			radWeight, racVarClasses, ralMonotoneVar, cTrain, cFeatures, cGroups, fractionInBag)
+    			radWeight, racVarClasses, ralMonotoneVar, cTrain, cFeatures, fractionInBag)
 {
 
-	cGroups = -1;
 	//Initialize the factory and then use to get the disribution
 	DistFactory = new DistributionFactory();
 
@@ -46,16 +45,13 @@ CGBMDataContainer::CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP 
 		}
 
 		const char* szIRMeasure = family.c_str() + offsetToMeasure + 1;
-		pDist = DistFactory -> CreateDist("pairwise", radMisc, szIRMeasure, cGroups, cTrain);
+		pDist = DistFactory -> CreateDist("pairwise", radMisc, szIRMeasure, cTrain);
 
 	}
 	else
 	{
-		pDist = DistFactory -> CreateDist(family, radMisc, "", cGroups, cTrain);
+		pDist = DistFactory -> CreateDist(family, radMisc, "", cTrain);
 	}
-
-	// Set the groups afterwards
-	data.SetNoGroups(cGroups);
 }
 
 //-----------------------------------
@@ -130,10 +126,10 @@ void CGBMDataContainer::ComputeResiduals(const double* adF, double* adZ)
 //    CTreeComps ptr - ptr to the tree components container in the gbm
 //    int& - reference to the number of nodes in the tree.
 //-----------------------------------
-void CGBMDataContainer::ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp, long cNodes)
+void CGBMDataContainer::ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp)
 {
 	pDist->FitBestConstant(&data, &adF[0],
-	                         (2*cNodes+1)/3, // number of terminal nodes
+	                         (2*pTreeComp->GetSizeOfTree()+1)/3, // number of terminal nodes
 	                         &adZ[0], pTreeComp);
 }
 
@@ -223,7 +219,7 @@ void CGBMDataContainer::BagData()
 	unsigned long cBagged = 0;
 
 	// randomly assign observations to the Bag
-	if (data.GetNoGroups() < 0)
+	if (pDist->GetNumGroups() < 0)
 	{
 		// regular instance based training
 		for(i=0; i<data.get_trainSize() && (cBagged < data.GetTotalInBag()); i++)
@@ -250,7 +246,7 @@ void CGBMDataContainer::BagData()
 		bool fChosen = false;
 		unsigned int cBaggedGroups = 0;
 		unsigned int cSeenGroups   = 0;
-		unsigned int cTotalGroupsInBag = (unsigned long)(data.GetBagFraction() * data.GetNoGroups());
+		unsigned int cTotalGroupsInBag = (unsigned long)(data.GetBagFraction() * pDist->GetNumGroups());
 		if (cTotalGroupsInBag <= 0)
 		{
 			cTotalGroupsInBag = 1;
@@ -269,7 +265,7 @@ void CGBMDataContainer::BagData()
 				}
 
 				// Group changed, make a new decision
-				fChosen = (unif_rand()*(data.GetNoGroups() - cSeenGroups) <
+				fChosen = (unif_rand()*(pDist->GetNumGroups() - cSeenGroups) <
 			   cTotalGroupsInBag - cBaggedGroups);
 				if(fChosen)
 				{

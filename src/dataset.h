@@ -38,8 +38,7 @@ public:
 	//----------------------
 	CDataset(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
 			SEXP radWeight, SEXP racVarClasses, SEXP ralMonotoneVar,
-			const int cTrain, const int cFeatures,
-			const int numGroups, const double fractionInBag);
+			const int cTrain, const int cFeatures, const double fractionInBag);
 
 	//---------------------
 	// Public destructor
@@ -80,9 +79,6 @@ public:
 	index_vector random_order() const;//randomize order of predictor varaiables
   
 	double GetBagFraction() const;
-
-	int GetNoGroups() const;
-	void SetNoGroups(int noGroups);
 
 	unsigned long GetValidSize() const;
 	long GetTotalInBag() const;

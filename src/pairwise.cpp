@@ -526,14 +526,14 @@ double CMAP::Measure(const double* const adY, const CRanker& ranker)
 
 
 CPairwise::CPairwise(SEXP radMisc,
-					const char* szIRMeasure, int& cGroups, int& cTrain): CDistribution(radMisc)
+					const char* szIRMeasure, int& cTrain): CDistribution(radMisc)
 {
 
 	// Set up adGroup - this is not required
 	adGroup = CDistribution::misc_ptr(false);
 
 	// Set up the number of groups - this used externally
-	cGroups = GBM_FUNC::numGroups(CDistribution::misc_ptr(true), cTrain);
+	SetNumGroups(GBM_FUNC::numGroups(CDistribution::misc_ptr(true), cTrain));
 
     // Construct the IR Measure
     if (!strcmp(szIRMeasure, "conc"))
@@ -559,10 +559,10 @@ CPairwise::CPairwise(SEXP radMisc,
 }
 
 CDistribution* CPairwise::Create(SEXP radMisc,
-										const char* szIRMeasure, int& cGroups, int& cTrain)
+										const char* szIRMeasure, int& cTrain)
 {
 
-	return new CPairwise(radMisc, szIRMeasure, cGroups, cTrain);
+	return new CPairwise(radMisc, szIRMeasure, cTrain);
 }
 
 CPairwise::~CPairwise()

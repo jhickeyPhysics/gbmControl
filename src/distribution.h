@@ -48,6 +48,8 @@ public:
   	bool has_misc() const ;
   	const double* misc_ptr(bool require=false) const;
   	double* misc_ptr(bool require=false);
+  	int GetNumGroups() const;
+  	void SetNumGroups(int GroupVal);
 
   	// shifts the misc_ptr() as appropriate
   	template<typename T>
@@ -90,6 +92,7 @@ private:
     // Private Variables
     //---------------------
     Rcpp::NumericVector adMisc;
+    int cGroups;
     bool distHasMisc;
     bool distRequiresMisc;
 

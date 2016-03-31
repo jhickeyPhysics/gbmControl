@@ -55,16 +55,18 @@ SEXP gbm
 {
   BEGIN_RCPP
     
-    VEC_VEC_CATEGORIES vecSplitCodes;
 
-  	//
-    int iT = 0;
+
+  	// Set up consts for tree fitting and transfer to R API
+  	VEC_VEC_CATEGORIES vecSplitCodes;
     const int cTrees = Rcpp::as<int>(rcTrees);
     const int cCatSplitsOld = Rcpp::as<int>(rcCatSplitsOld);
     const int cTreesOld = Rcpp::as<int>(rcTreesOld);
     const bool verbose = Rcpp::as<bool>(rfVerbose);
     const Rcpp::NumericVector adFold(radFOld);
 
+
+    // Set up parameters for initialization
     const int cTrain = Rcpp::as<int>(rcTrain);
     const int cFeatures = Rcpp::as<int>(rcFeatures);
     const int cDepth = Rcpp::as<int>(rcDepth);
@@ -73,13 +75,14 @@ SEXP gbm
     const double dBagFraction = Rcpp::as<double>(rdBagFraction);
     const std::string family = Rcpp::as<std::string>(rszFamily);
 
+
     int cGroups = -1;
     Rcpp::RNGScope scope;
 
     // Build gbm piece-by-piece
     CGBM GBM;
     GBM.SetDataAndDistribution(radY, radOffset, radX, raiXOrder,
-            radWeight, racVarClasses, ralMonotoneVar, radMisc, family, cTrain, cFeatures, cGroups, dBagFraction);
+            radWeight, racVarClasses, ralMonotoneVar, radMisc, family, cTrain, cFeatures, dBagFraction);
     GBM.SetTreeContainer(dShrinkage, cDepth, cMinObsInNode);
     
     // initialize the GBM
@@ -110,7 +113,7 @@ SEXP gbm
     {
        Rprintf("Iter   TrainDeviance   ValidDeviance   StepSize   Improve\n");
     }
-    for(iT=0; iT<cTrees; iT++)
+    for(int iT=0; iT<cTrees; iT++)
     {
     	Rcpp::checkUserInterrupt();
 
