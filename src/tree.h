@@ -30,7 +30,7 @@ class CCARTTree
 {
 public:
 
-    CCARTTree(double shrinkage=1.0);
+    CCARTTree(double shrinkage=1.0, long depth = 1);
     ~CCARTTree();
 
     void grow(double *adZ,
@@ -61,9 +61,7 @@ public:
     
     long GetNodeCount();
     const long GetNodeCount() const;
-    long GetDepth(){return depthOfTree;}
     vector<CNode*> GetTermNodes(){return vecpTermNodes;}
-    void SetDepth(long depth){ depthOfTree = depth;}
     const double GetShrinkageConst() const { return shrinkageConst;}
     void Print();
 
@@ -72,7 +70,7 @@ private:
     // Definition of a tree
     CNode* pRootNode;
     vector<CNode*> vecpTermNodes;
-    long depthOfTree;
+    const long depthOfTree;
     const double shrinkageConst;
     double dError; // total squared error before carrying out the splits
     long cTotalNodeCount;

@@ -3,7 +3,8 @@
 
 #include "tree.h"
 
-CCARTTree::CCARTTree(double shrinkage):shrinkageConst(shrinkage)
+CCARTTree::CCARTTree(double shrinkage, long depth):shrinkageConst(shrinkage),
+depthOfTree(depth)
 {
     pRootNode = NULL;
 

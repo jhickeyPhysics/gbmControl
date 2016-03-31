@@ -35,9 +35,8 @@ CTreeComps::CTreeComps(TreeParams treeConfig)
 {
 	this-> cMinObsInNode = treeConfig.cMinObsInNode;
 	aNodeSearch.Initialize(treeConfig.cMinObsInNode);
-	ptreeTemp = new CCARTTree(treeConfig.dShrinkage);
+	ptreeTemp = new CCARTTree(treeConfig.dShrinkage, treeConfig.cDepth);
 	aiNodeAssign.resize(treeConfig.cTrain);
-	ptreeTemp->SetDepth(treeConfig.cDepth);
 
 }
 
