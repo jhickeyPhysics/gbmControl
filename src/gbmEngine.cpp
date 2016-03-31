@@ -36,7 +36,7 @@ void CGBM::SetDataAndDistribution(SEXP radY, SEXP radOffset, SEXP radX, SEXP rai
 
 	// Set up residuals container
 	adZ.assign(pDataCont->getData()->nrow(), 0);
-	adFadj.assign(pDataCont->getData()->nrow(), 0);
+
 	hasDataAndDist = true;
 }
 
@@ -78,13 +78,18 @@ void CGBM::FitLearner
   dTrainError = 0.0;
   dValidError = 0.0;
   dOOBagImprove = 0.0;
-  
+
+  // Initialize adjustments to function estimate
+  std::vector<double> adFadj(pDataCont->getData()->nrow(), 0);
+
+  // Bag data
   pDataCont->BagData();
 
 #ifdef NOISY_DEBUG
   Rprintf("Compute working response\n");
 #endif
 
+  // Compute Residuals and fit tree
   pDataCont->ComputeResiduals(&adF[0], &adZ[0]);
   pTreeComp->GrowTrees(pDataCont->getData(), cNodes, &adZ[0], &adFadj[0]);
 
@@ -94,14 +99,14 @@ void CGBM::FitLearner
   Rprintf("fit best constant\n");
 #endif
 
+  // Adjust terminal node predictions and shrink
   pDataCont->ComputeBestTermNodePreds(&adF[0], &adZ[0], pTreeComp, cNodes);
   pTreeComp->AdjustAndShrink(&adFadj[0]);
 
-  // update training predictions
-  // fill in missing nodes where N < cMinObsInNode
+  // Compute the error improvement within bag
   dOOBagImprove = pDataCont->ComputeBagImprovement(&adF[0], pTreeComp->GetLambda(), &adFadj[0]);
 
-  // update the training predictions
+  // Update the function estimate
   unsigned long i = 0;
   for(i=0; i < pDataCont->getData()->get_trainSize(); i++)
   {
@@ -109,17 +114,16 @@ void CGBM::FitLearner
 
   }
 
+  // Make validation predictions
   dTrainError = pDataCont->ComputeDeviance(&adF[0], false);
-
-  // update the validation predictions
   pTreeComp->PredictValid(pDataCont->getData(), &adFadj[0]);
+
   for(i=pDataCont->getData()->get_trainSize();
 	  i < pDataCont->getData()->get_trainSize()+pDataCont->getData()->GetValidSize();
 	  i++)
   {
     adF[i] += adFadj[i];
   }
-
   dValidError = pDataCont->ComputeDeviance(&adF[0], true);
 
 }

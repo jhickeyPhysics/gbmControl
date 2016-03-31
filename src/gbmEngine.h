@@ -83,7 +83,7 @@ private:
 
     // Residuals and adjustments to function estimate
     std::vector<double> adZ;
-    std::vector<double> adFadj;
+
 };
 
 #endif //  __gbmEnginegbm_h__
