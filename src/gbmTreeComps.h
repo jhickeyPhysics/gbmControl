@@ -63,7 +63,6 @@ public:
 	const long GetSizeOfTree() const;
 
 private:
-	//-------------------
 	// Private Variables
 	//-------------------
 
@@ -71,7 +70,7 @@ private:
     // allocate them once here for all trees to use
     std::vector<unsigned long> aiNodeAssign;
     CNodeSearch aNodeSearch;
-    std::auto_ptr<CCARTTree> ptreeTemp;
+    CCARTTree* ptreeTemp;
 
     unsigned long cMinObsInNode;
 };
