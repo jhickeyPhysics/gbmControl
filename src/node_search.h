@@ -37,10 +37,12 @@ public:
     					const CDataset& data,
     					vector<unsigned long>& aiNodeAssign);
 
+    template <volatile bool xIsFactor>
     void IncorporateObs(double dX,
 			double dZ,
 			double dW,
 			long lMonotone);
+    
     void Reset();
 
 

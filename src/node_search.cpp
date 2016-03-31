@@ -37,6 +37,74 @@ void CNodeSearch::Reset()
 	cTerminalNodes = 1;
 }
 
+template<>
+void CNodeSearch::IncorporateObs<false>
+(
+    double dX,
+    double dZ,
+    double dW,
+    long lMonotone
+)
+{
+
+    if(fIsSplit) return;
+    if(ISNA(dX))
+    {
+        proposedSplit.UpdateMissingNode(dW*dZ, dW);
+    }
+    else
+    {
+        if(dLastXValue > dX)
+        {
+        	throw GBM::failure("Observations are not in order. gbm() was unable to build an index for the design matrix. Could be a bug in gbm or an unusual data type in data.");
+        }
+
+        // Evaluate the current split
+        // the newest observation is still in the right child
+        proposedSplit.SplitValue = 0.5*(dLastXValue + dX);
+
+        if((dLastXValue != dX) &&
+            proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
+            proposedSplit.SplitIsCorrMonotonic(lMonotone))
+        {
+        	proposedSplit.NodeGradResiduals();
+
+            if(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals )
+            {
+            	bestSplit = proposedSplit;
+            }
+        }
+
+        // now move the new observation to the left
+        // if another observation arrives we will evaluate this
+        proposedSplit.UpdateLeftNode(dW*dZ, dW);
+        dLastXValue = dX;
+    }
+
+}
+
+template<>
+void CNodeSearch::IncorporateObs<true>
+(
+    double dX,
+    double dZ,
+    double dW,
+    long lMonotone
+)
+{
+	if(fIsSplit) return;
+	if(ISNA(dX))
+	{
+		proposedSplit.UpdateMissingNode(dW*dZ, dW);
+	}
+	else // variable is categorical, evaluates later
+	{
+		adGroupSumZ[(unsigned long)dX] += dW*dZ;
+		adGroupW[(unsigned long)dX] += dW;
+		acGroupN[(unsigned long)dX] ++;
+	}
+}
+
 void CNodeSearch::GenerateAllSplits
 (
 		vector<CNode*>& vecpTermNodes,
@@ -46,6 +114,7 @@ void CNodeSearch::GenerateAllSplits
 )
 {
 	unsigned long iWhichObs = 0;
+
 	const CDataset::index_vector colNumbers(data.random_order());
 	const CDataset::index_vector::const_iterator final = colNumbers.begin() + data.get_numFeatures();
 
@@ -61,6 +130,8 @@ void CNodeSearch::GenerateAllSplits
 	  {
 
 		  ResetForNewVar(*it, data.varclass(*it));
+       bool varIsCategorical = (bool) data.varclass(*it);
+
 		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
 		  {
 			  //Get Observation and add to split if needed
@@ -68,10 +139,21 @@ void CNodeSearch::GenerateAllSplits
 			  if((aiNodeAssign[iWhichObs] == iNode) && data.GetBag()[iWhichObs])
 			  {
 				  const double dX = data.x_value(iWhichObs, *it);
-				  IncorporateObs(dX,
-								adZ[iWhichObs],
-								data.weight_ptr()[iWhichObs],
-								data.monotone(*it));
+				  if(data.varclass(*it) !=0)
+				  {
+					  IncorporateObs<true>(dX,
+										adZ[iWhichObs],
+										data.weight_ptr()[iWhichObs],
+										data.monotone(*it));
+				  }
+				  else
+				  {
+					  IncorporateObs<false>(dX,
+										adZ[iWhichObs],
+										data.weight_ptr()[iWhichObs],
+										data.monotone(*it));
+				  }
+
 			  }
 
 		  }
@@ -156,59 +238,6 @@ void CNodeSearch::ReAssignData
 	}
 }
 
-void CNodeSearch::IncorporateObs
-(
-    double dX,
-    double dZ,
-    double dW,
-    long lMonotone
-)
-{
-    static double dWZ = 0.0;
-
-    if(fIsSplit) return;
-
-    dWZ = dW*dZ;
-
-    if(ISNA(dX))
-    {
-        proposedSplit.UpdateMissingNode(dWZ, dW);
-    }
-    else if(proposedSplit.SplitClass == 0)   // variable is continuous
-    {
-        if(dLastXValue > dX)
-        {
-        	throw GBM::failure("Observations are not in order. gbm() was unable to build an index for the design matrix. Could be a bug in gbm or an unusual data type in data.");
-        }
-
-        // Evaluate the current split
-        // the newest observation is still in the right child
-        proposedSplit.SplitValue = 0.5*(dLastXValue + dX);
-
-        if((dLastXValue != dX) &&
-            proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
-            proposedSplit.SplitIsCorrMonotonic(lMonotone))
-        {
-        	proposedSplit.NodeGradResiduals();
-
-            if(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals )
-            {
-            	bestSplit = proposedSplit;
-            }
-        }
-
-        // now move the new observation to the left
-        // if another observation arrives we will evaluate this
-        proposedSplit.UpdateLeftNode(dWZ, dW);
-        dLastXValue = dX;
-    }
-    else // variable is categorical, evaluates later
-    {
-        adGroupSumZ[(unsigned long)dX] += dWZ;
-        adGroupW[(unsigned long)dX] += dW;
-        acGroupN[(unsigned long)dX] ++;
-    }
-}
 
 
 
