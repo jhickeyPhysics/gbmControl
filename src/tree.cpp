@@ -105,9 +105,13 @@ void CCARTTree::grow
     // Print();
 }
 
-void CCARTTree::GetNodeCount(int &cNodes)
+long CCARTTree::GetNodeCount()
 {
-    cNodes = cTotalNodeCount;
+	return cTotalNodeCount;
+}
+const long CCARTTree::GetNodeCount() const
+{
+    return cTotalNodeCount;
 }
 
 

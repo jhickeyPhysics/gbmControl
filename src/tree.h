@@ -59,7 +59,8 @@ public:
 		double *adFadj,
 		unsigned long cMinObsInNode);
     
-    void GetNodeCount(int &cNodes);
+    long GetNodeCount();
+    const long GetNodeCount() const;
     void SetShrinkage(double dShrink)
     {
         this->dShrink = dShrink;
@@ -77,7 +78,7 @@ private:
     long depthOfTree;
     double dShrink;
     double dError; // total squared error before carrying out the splits
-    unsigned long cTotalNodeCount;
+    long cTotalNodeCount;
 
 };
 

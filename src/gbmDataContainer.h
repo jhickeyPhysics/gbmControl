@@ -47,7 +47,7 @@ public:
     void Initialize();
     double InitialFunctionEstimate();
     void ComputeResiduals(const double* adF, double* adZ);
-    void ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp, int& cNodes);
+    void ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp, long cNodes);
     double ComputeDeviance(const double *adF, bool isValidationSet=false);
     double ComputeBagImprovement(const double* adF, const double shrinkage, const double* adFadj);
     void BagData();

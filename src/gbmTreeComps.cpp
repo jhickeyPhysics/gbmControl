@@ -85,7 +85,7 @@ void CTreeComps::TreeInitialize(const CDataset* pData)
 //    int& - reference to  number of nodes in tree
 //
 //-----------------------------------
-void CTreeComps::GrowTrees(const CDataset* pData, int& cNodes, double* adZ, const double* adFadj)
+void CTreeComps::GrowTrees(const CDataset* pData, double* adZ, const double* adFadj)
 {
 	#ifdef NOISY_DEBUG
 	  Rprintf("Reset tree\n");
@@ -107,12 +107,11 @@ void CTreeComps::GrowTrees(const CDataset* pData, int& cNodes, double* adZ, cons
 	                 aNodeSearch);
 
 	#ifdef NOISY_DEBUG
-	  tempTree->Print();
+	  ptempTree->Print();
 	#endif
 
-	  ptreeTemp->GetNodeCount(cNodes);
 	#ifdef NOISY_DEBUG
-	  Rprintf("get node count=%d\n",cNodes);
+	  Rprintf("get node count=%d\n", ptreeTemp->GetNodeCount());
 	#endif
 }
 
@@ -263,5 +262,13 @@ unsigned long CTreeComps::GetMinNodeObs()
 }
 
 
+long CTreeComps::GetSizeOfTree()
+{
+	return ptreeTemp->GetNodeCount();
+}
+const long CTreeComps::GetSizeOfTree() const
+{
+	return ptreeTemp->GetNodeCount();
+}
 
 

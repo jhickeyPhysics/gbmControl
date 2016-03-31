@@ -56,8 +56,7 @@ public:
     void FitLearner(double *adF,
 		 double &dTrainError,
 		 double &dValidError,
-		 double &dOOBagImprove,
-		 int &cNodes);
+		 double &dOOBagImprove);
 
     void GBMTransferTreeToRList(int *aiSplitVar,
 			     double *adSplitPoint,
@@ -70,6 +69,7 @@ public:
 			     VEC_VEC_CATEGORIES &vecSplitCodes,
 			     int cCatSplitsOld);
 
+    const long SizeOfFittedTree() const;
     double InitF();
 
 private:

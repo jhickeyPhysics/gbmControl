@@ -65,8 +65,7 @@ void CGBM::FitLearner
   double *adF,
   double &dTrainError,
   double &dValidError,
-  double &dOOBagImprove,
-  int &cNodes
+  double &dOOBagImprove
 )
 {
   if(!fInitialized)
@@ -90,7 +89,7 @@ void CGBM::FitLearner
 
   // Compute Residuals and fit tree
   pDataCont->ComputeResiduals(&adF[0], &adZ[0]);
-  pTreeComp->GrowTrees(pDataCont->getData(), cNodes, &adZ[0], &adFadj[0]);
+  pTreeComp->GrowTrees(pDataCont->getData(), &adZ[0], &adFadj[0]);
 
   // Now I have adF, adZ, and vecpTermNodes (new node assignments)
   // Fit the best constant within each terminal node
@@ -99,7 +98,7 @@ void CGBM::FitLearner
 #endif
 
   // Adjust terminal node predictions and shrink
-  pDataCont->ComputeBestTermNodePreds(&adF[0], &adZ[0], pTreeComp, cNodes);
+  pDataCont->ComputeBestTermNodePreds(&adF[0], &adZ[0], pTreeComp, pTreeComp->GetSizeOfTree());
   pTreeComp->AdjustAndShrink(&adFadj[0]);
 
   // Compute the error improvement within bag
@@ -153,6 +152,11 @@ void CGBM::GBMTransferTreeToRList
 				 adPred,
 				 vecSplitCodes,
 				 cCatSplitsOld);
+}
+
+const long CGBM::SizeOfFittedTree() const
+{
+	return pTreeComp->GetSizeOfTree();
 }
 
 double CGBM::InitF()

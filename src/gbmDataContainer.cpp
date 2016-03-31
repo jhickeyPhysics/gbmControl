@@ -130,7 +130,7 @@ void CGBMDataContainer::ComputeResiduals(const double* adF, double* adZ)
 //    CTreeComps ptr - ptr to the tree components container in the gbm
 //    int& - reference to the number of nodes in the tree.
 //-----------------------------------
-void CGBMDataContainer::ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp, int& cNodes)
+void CGBMDataContainer::ComputeBestTermNodePreds(const double* adF, double* adZ, CTreeComps* pTreeComp, long cNodes)
 {
 	pDist->FitBestConstant(&data, &adF[0],
 	                         (2*cNodes+1)/3, // number of terminal nodes

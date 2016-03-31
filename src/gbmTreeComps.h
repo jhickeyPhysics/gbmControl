@@ -41,7 +41,7 @@ public:
 	// Public Functions
 	//---------------------
     void TreeInitialize(const CDataset* pData);
-    void GrowTrees(const CDataset* pData, int& cNodes,  double* adZ, const double* adFadj);
+    void GrowTrees(const CDataset* pData, double* adZ, const double* adFadj);
     void AdjustAndShrink(double * adFadj);
     void PredictValid(const CDataset* pData, double* adFadj);
     void TransferTreeToRList(const CDataset &pData,
@@ -63,6 +63,8 @@ public:
 	double GetLambda();
 	const double GetLambda() const;
 	unsigned long GetMinNodeObs();
+	long GetSizeOfTree();
+	const long GetSizeOfTree() const;
 
 private:
 	//-------------------

@@ -73,7 +73,6 @@ SEXP gbm
     const double dBagFraction = Rcpp::as<double>(rdBagFraction);
     const std::string family = Rcpp::as<std::string>(rszFamily);
 
-    int cNodes = 0;
     int cGroups = -1;
     Rcpp::RNGScope scope;
 
@@ -119,22 +118,21 @@ SEXP gbm
         double dValidError = 0;
         double dOOBagImprove = 0;
         GBM.FitLearner(adF.begin(),
-                      dTrainError,dValidError,dOOBagImprove,
-                      cNodes);
+                      dTrainError,dValidError,dOOBagImprove);
 
         // store the performance measures
         adTrainError[iT] += dTrainError;
         adValidError[iT] += dValidError;
         adOOBagImprove[iT] += dOOBagImprove;
 
-        Rcpp::IntegerVector iSplitVar(cNodes);
-        Rcpp::NumericVector dSplitPoint(cNodes);
-        Rcpp::IntegerVector iLeftNode(cNodes);
-        Rcpp::IntegerVector iRightNode(cNodes);
-        Rcpp::IntegerVector iMissingNode(cNodes);
-        Rcpp::NumericVector dErrorReduction(cNodes);
-        Rcpp::NumericVector dWeight(cNodes);
-        Rcpp::NumericVector dPred(cNodes);
+        Rcpp::IntegerVector iSplitVar(GBM.SizeOfFittedTree());
+        Rcpp::NumericVector dSplitPoint(GBM.SizeOfFittedTree());
+        Rcpp::IntegerVector iLeftNode(GBM.SizeOfFittedTree());
+        Rcpp::IntegerVector iRightNode(GBM.SizeOfFittedTree());
+        Rcpp::IntegerVector iMissingNode(GBM.SizeOfFittedTree());
+        Rcpp::NumericVector dErrorReduction(GBM.SizeOfFittedTree());
+        Rcpp::NumericVector dWeight(GBM.SizeOfFittedTree());
+        Rcpp::NumericVector dPred(GBM.SizeOfFittedTree());
 
 
         GBM.GBMTransferTreeToRList(iSplitVar.begin(),
