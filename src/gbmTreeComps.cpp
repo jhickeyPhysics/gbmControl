@@ -31,14 +31,13 @@
 //    int - number of groups in data
 //
 //-----------------------------------
-CTreeComps::CTreeComps(double dLambda,
-	    unsigned long cDepth,
-	    unsigned long cMinObsInNode)
+CTreeComps::CTreeComps(TreeParams treeConfig)
 {
-	this-> cMinObsInNode = cMinObsInNode;
-	aNodeSearch.Initialize(cMinObsInNode);
-	ptreeTemp.reset(new CCARTTree(dLambda));
-	ptreeTemp->SetDepth(cDepth);
+	this-> cMinObsInNode = treeConfig.cMinObsInNode;
+	aNodeSearch.Initialize(treeConfig.cMinObsInNode);
+	ptreeTemp.reset(new CCARTTree(treeConfig.dShrinkage));
+	aiNodeAssign.resize(treeConfig.cTrain);
+	ptreeTemp->SetDepth(treeConfig.cDepth);
 
 }
 
@@ -55,23 +54,6 @@ CTreeComps::CTreeComps(double dLambda,
 CTreeComps::~CTreeComps()
 {
 }
-
-//-----------------------------------
-// Function: Initialize
-//
-// Returns: none
-//
-// Description: initializes the tree components
-//
-// Parameters: const CDataset* - ptr to the data object in GBM
-//
-//-----------------------------------
-void CTreeComps::TreeInitialize(const CDataset* pData)
-{
-	// aiNodeAssign tracks to which node each training obs belongs
-	aiNodeAssign.resize(pData->get_trainSize());
-}
-
 
 //-----------------------------------
 // Function: GrowTrees

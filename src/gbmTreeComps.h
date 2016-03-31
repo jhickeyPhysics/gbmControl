@@ -27,9 +27,7 @@ public:
 	//----------------------
 	// Public Constructors
 	//----------------------
-    CTreeComps(double dLambda,
-    	    unsigned long cDepth,
-    	    unsigned long cMinObsInNode);
+    CTreeComps(TreeParams treeConfig);
 
 
 	//---------------------
@@ -40,7 +38,6 @@ public:
     //---------------------
 	// Public Functions
 	//---------------------
-    void TreeInitialize(const CDataset* pData);
     void GrowTrees(const CDataset* pData, double* adZ, const double* adFadj);
     void AdjustAndShrink(double * adFadj);
     void PredictValid(const CDataset* pData, double* adFadj);

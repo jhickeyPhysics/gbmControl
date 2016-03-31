@@ -1,6 +1,7 @@
 // GBM by Greg Ridgeway  Copyright (C) 2003
 
 #include "gbmEngine.h"
+#include "configStructs.h"
 #include <memory>
 #include <utility>
 #include <Rcpp.h>
@@ -55,8 +56,6 @@ SEXP gbm
 {
   BEGIN_RCPP
     
-
-
   	// Set up consts for tree fitting and transfer to R API
   	VEC_VEC_CATEGORIES vecSplitCodes;
     const int cTrees = Rcpp::as<int>(rcTrees);
@@ -67,26 +66,21 @@ SEXP gbm
 
 
     // Set up parameters for initialization
-    const int cTrain = Rcpp::as<int>(rcTrain);
-    const int cFeatures = Rcpp::as<int>(rcFeatures);
-    const int cDepth = Rcpp::as<int>(rcDepth);
-    const int cMinObsInNode = Rcpp::as<int>(rcMinObsInNode);
-    const double dShrinkage = Rcpp::as<double>(rdShrinkage);
-    const double dBagFraction = Rcpp::as<double>(rdBagFraction);
-    const std::string family = Rcpp::as<std::string>(rszFamily);
+    configStructs GBMParams (radY, radOffset, radX,
+				raiXOrder, radWeight, radMisc,
+				racVarClasses, ralMonotoneVar,
+				rszFamily, rcTrees, rcDepth,
+				rcMinObsInNode, rdShrinkage,
+				rdBagFraction, rcTrain, rcFeatures);
+
+     Rcpp::RNGScope scope;
 
 
-    int cGroups = -1;
-    Rcpp::RNGScope scope;
 
     // Build gbm piece-by-piece
-    CGBM GBM;
-    GBM.SetDataAndDistribution(radY, radOffset, radX, raiXOrder,
-            radWeight, racVarClasses, ralMonotoneVar, radMisc, family, cTrain, cFeatures, dBagFraction);
-    GBM.SetTreeContainer(dShrinkage, cDepth, cMinObsInNode);
+    CGBM GBM(GBMParams);
     
-    // initialize the GBM
-    GBM.Initialize();
+    // Set up the function estimate
     double dInitF = GBM.InitF();
     Rcpp::NumericMatrix tempX(radX);
     Rcpp::NumericVector adF(tempX.nrow());
@@ -163,7 +157,7 @@ SEXP gbm
 		  iT+1+cTreesOld,
 		  adTrainError[iT],
 		  adValidError[iT],
-		  dShrinkage,
+		  GBMParams.GetTreeConfig().dShrinkage,
 		  adOOBagImprove[iT]);
         }
         

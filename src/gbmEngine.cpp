@@ -3,18 +3,19 @@
 #include <algorithm>
 #include "gbmEngine.h"
 
-CGBM::CGBM()
+CGBM::CGBM(configStructs GBMParams)
 {
 	// Set up checks for initialization
     fInitialized = false;
-    hasDataAndDist = false;
-    hasTreeContainer = false;
 
-    // Initialize distributions
+    // Create and Initialize dist
+    pDataCont = new CGBMDataContainer(GBMParams.GetDataConfig());
+    pDataCont->Initialize();
 
-
-
-
+    // Create Tree Components
+    pTreeComp = new CTreeComps(GBMParams.GetTreeConfig());
+	adZ.assign(pDataCont->getData()->nrow(), 0);
+	fInitialized = true;
 }
 
 
@@ -22,42 +23,6 @@ CGBM::~CGBM()
 {
 	delete pDataCont;
 	delete pTreeComp;
-}
-
-void CGBM::SetDataAndDistribution(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
-        SEXP radWeight, SEXP racVarClasses,
-        SEXP ralMonotoneVar, SEXP radMisc, const std::string& family,
-		const int cTrain, const int cFeatures, double bagFraction)
-{
-
-	pDataCont=new CGBMDataContainer(radY, radOffset, radX, raiXOrder,
-	        radWeight, racVarClasses, ralMonotoneVar, radMisc, family,
-	        cTrain, cFeatures, bagFraction);
-
-	// Set up residuals container
-	adZ.assign(pDataCont->getData()->nrow(), 0);
-	hasDataAndDist = true;
-}
-
-void CGBM::SetTreeContainer(double dLambda,
-   	    unsigned long cDepth,
-   	    unsigned long cMinObsInNode)
-{
-	pTreeComp = new CTreeComps(dLambda, cDepth, cMinObsInNode);
-	hasTreeContainer = true;
-}
-
-void CGBM::Initialize()
-{
-	// Throw error if initialization called incorrectly
-	if(!(hasDataAndDist && hasTreeContainer))
-	{
-		throw GBM::failure("GBM object could not be built - missing: "
-				"data or distribution or weak learner");
-	}
-	pDataCont-> Initialize();
-	pTreeComp -> TreeInitialize(pDataCont->getData());
-	fInitialized = true;
 }
 
 void CGBM::FitLearner

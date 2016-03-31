@@ -14,6 +14,7 @@
 // Includes
 //------------------------------
 #include "buildinfo.h"
+#include "configStructs.h"
 #include "dataset.h"
 #include "distribution.h"
 #include "distributionFactory.h"
@@ -31,10 +32,7 @@ public:
 	//----------------------
 	// Public Constructors
 	//----------------------
-    CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
-            SEXP radWeight, SEXP racVarClasses,
-            SEXP ralMonotoneVar, SEXP radMisc, const std::string& family,
-            int cTrain, int cFeatures, double bagFraction);
+    CGBMDataContainer(DataDistParams dataDistConfig);
 
 	//---------------------
 	// Public destructor
@@ -61,7 +59,7 @@ private:
 	//-------------------
     CDataset data;
     CDistribution* pDist;
-    DistributionFactory* DistFactory; // currently a singleton - does not need to be now - TODO:remove property.
+    DistributionFactory* DistFactory;
 
 };
 

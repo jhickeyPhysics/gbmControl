@@ -154,14 +154,13 @@ public:
 //	cTrain		   - int specifiy the number of data points in training set
 //
 //-----------------------------------
-CDataset::CDataset(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
-					SEXP radWeight, SEXP racVarClasses, SEXP ralMonotoneVar,
-					const int cTrain, const int cFeatures, const double fractionInBag)
+CDataset::CDataset(DataDistParams dataParams)
 {
 	// Set up the pimpl
-	dataImpl = new CDImpl(radY, radOffset, radX, raiXOrder,
-								radWeight, racVarClasses, ralMonotoneVar, cTrain,
-								cFeatures, fractionInBag);
+	dataImpl = new CDImpl(dataParams.respY, dataParams.offset, dataParams.xValues,
+							dataParams.xOrder,	dataParams.varWeight, dataParams.varClasses,
+							dataParams.monotoneVar, dataParams.cTrain,
+								dataParams.cFeatures, dataParams.dBagFraction);
 
 	// Check for errors on initialization
 	if (dataImpl-> adX.ncol() != dataImpl-> alMonotoneVar.size())
@@ -174,7 +173,7 @@ CDataset::CDataset(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
 		throw GBM::invalid_argument("shape mismatch (var classes does not match data)");
 	}
 
-	if (dataImpl->adX.nrow() < int(cTrain))
+	if (dataImpl->adX.nrow() < int(dataParams.cTrain))
 	{
 		throw GBM::invalid_argument("your training instances don't make sense");
 	}

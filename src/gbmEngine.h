@@ -18,6 +18,7 @@
 // Includes
 //------------------------------
 #include "buildinfo.h"
+#include "configStructs.h"
 #include "gbmDataContainer.h"
 #include "gbmTreeComps.h"
 #include <memory>
@@ -33,7 +34,7 @@ public:
 	//----------------------
 	// Public Constructors
 	//----------------------
-    CGBM();
+    CGBM(configStructs GBMParams);
 
 	//---------------------
 	// Public destructor
@@ -43,16 +44,6 @@ public:
 	//---------------------
 	// Public Functions
 	//---------------------
-    void Initialize();
-    void SetDataAndDistribution(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
-            SEXP radWeight, SEXP racVarClasses,
-            SEXP ralMonotoneVar, SEXP radMisc, const std::string& family,
-    		const int cTrain, const int cFeatures, double bagFraction);
-
-    void SetTreeContainer(double dLambda,
-    	    unsigned long cDepth,
-    	    unsigned long cMinObsInNode);
-
     void FitLearner(double *adF,
 		 double &dTrainError,
 		 double &dValidError,
@@ -79,7 +70,6 @@ private:
     CGBMDataContainer* pDataCont;
 	CTreeComps* pTreeComp;
     bool fInitialized;          // indicates whether the GBM has been initialized
-    bool hasDataAndDist, hasTreeContainer;
 
     // Residuals and adjustments to function estimate
     std::vector<double> adZ;

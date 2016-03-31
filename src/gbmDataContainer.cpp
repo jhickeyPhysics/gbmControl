@@ -23,12 +23,8 @@
 //
 // Parameters: ...
 //-----------------------------------
-CGBMDataContainer::CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
-        SEXP radWeight, SEXP racVarClasses,
-        SEXP ralMonotoneVar, SEXP radMisc, const std::string& family, int cTrain,
-        int cFeatures, double fractionInBag):
-        data(radY, radOffset, radX, raiXOrder,
-    			radWeight, racVarClasses, ralMonotoneVar, cTrain, cFeatures, fractionInBag)
+CGBMDataContainer::CGBMDataContainer(DataDistParams dataDistConfig):
+        data(dataDistConfig)
 {
 
 	//Initialize the factory and then use to get the disribution
@@ -36,21 +32,21 @@ CGBMDataContainer::CGBMDataContainer(SEXP radY, SEXP radOffset, SEXP radX, SEXP 
 
 	// Checks for pairwise distribution
 	// this should be removed later.
-	if(0 == family.compare(0, 8, "pairwise"))
+	if(0 == dataDistConfig.family.compare(0, 8, "pairwise"))
 	{
-		std::size_t offsetToMeasure = family.find("_");
+		std::size_t offsetToMeasure = dataDistConfig.family.find("_");
 		if(offsetToMeasure == std::string::npos)
 		{
 			throw GBM::failure("Unable to locate IR metric required for pairwise");
 		}
 
-		const char* szIRMeasure = family.c_str() + offsetToMeasure + 1;
-		pDist = DistFactory -> CreateDist("pairwise", radMisc, szIRMeasure, cTrain);
+		const char* szIRMeasure = dataDistConfig.family.c_str() + offsetToMeasure + 1;
+		pDist = DistFactory -> CreateDist("pairwise", dataDistConfig.misc, szIRMeasure, dataDistConfig.cTrain);
 
 	}
 	else
 	{
-		pDist = DistFactory -> CreateDist(family, radMisc, "", cTrain);
+		pDist = DistFactory -> CreateDist(dataDistConfig.family, dataDistConfig.misc, "", dataDistConfig.cTrain);
 	}
 }
 

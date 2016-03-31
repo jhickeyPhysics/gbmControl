@@ -9,7 +9,7 @@
 //
 //  History:    3/26/2001   gregr created
 //              2/14/2003   gregr: adapted for R implementation
-//
+//				31/03/2016  James Hickey: RAII and Pimpled
 //------------------------------------------------------------------------------
 
 #ifndef __dataset_h__
@@ -19,6 +19,7 @@
 // Includes
 //------------------------------
 #include "buildinfo.h"
+#include "configStructs.h"
 #include "gbmexcept.h"
 #include "gbmFunc.h"
 #include <memory>
@@ -36,9 +37,7 @@ public:
 	//----------------------
 	// Public Constructors
 	//----------------------
-	CDataset(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
-			SEXP radWeight, SEXP racVarClasses, SEXP ralMonotoneVar,
-			const int cTrain, const int cFeatures, const double fractionInBag);
+	CDataset(DataDistParams dataParams);
 
 	//---------------------
 	// Public destructor
