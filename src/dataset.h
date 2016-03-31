@@ -97,7 +97,7 @@ private:
 	// Private Variables
 	//-------------------
 	class CDImpl;
-	std::auto_ptr<CDImpl> dataImpl;
+	CDImpl* dataImpl;
 };
 
 #endif // __dataset_h__

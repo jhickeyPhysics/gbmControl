@@ -36,7 +36,6 @@ void CGBM::SetDataAndDistribution(SEXP radY, SEXP radOffset, SEXP radX, SEXP rai
 
 	// Set up residuals container
 	adZ.assign(pDataCont->getData()->nrow(), 0);
-
 	hasDataAndDist = true;
 }
 

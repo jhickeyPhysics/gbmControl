@@ -37,10 +37,9 @@ public:
 		cValid = adX.nrow() - cTrain;
 		pointAtTrainSet = true;
 
-		adYPtr = NULL;
-		adOffsetPtr = NULL;
-		adWeightPtr = NULL;
-
+		adYPtr = adY.begin();
+		adWeightPtr = adWeight.begin();
+		adOffsetPtr = adOffset.begin();
 		afInBag.assign(cTrain, false);
 
 		// Ensure initialization makes sense
@@ -165,10 +164,9 @@ CDataset::CDataset(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
 					const double fractionInBag)
 {
 	// Set up the pimpl
-	dataImpl.reset(new CDImpl(radY, radOffset, radX, raiXOrder,
+	dataImpl = new CDImpl(radY, radOffset, radX, raiXOrder,
 								radWeight, racVarClasses, ralMonotoneVar, cTrain,
-								cFeatures, numGroups, fractionInBag));
-
+								cFeatures, numGroups, fractionInBag);
 
 	// Check for errors on initialization
 	if (dataImpl-> adX.ncol() != dataImpl-> alMonotoneVar.size())
@@ -185,13 +183,6 @@ CDataset::CDataset(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
 	{
 		throw GBM::invalid_argument("your training instances don't make sense");
 	}
-
-	// Initialize to the training set
-	dataImpl-> pointAtTrainSet = true;
-	dataImpl->adYPtr = dataImpl->adY.begin();
-	dataImpl->adOffsetPtr = dataImpl->adOffset.begin();
-	dataImpl->adWeightPtr = dataImpl->adWeight.begin();
-
  };
 
 //-----------------------------------
@@ -206,6 +197,7 @@ CDataset::CDataset(SEXP radY, SEXP radOffset, SEXP radX, SEXP raiXOrder,
 //-----------------------------------
 CDataset::~CDataset()
 {
+	delete dataImpl;
 }
 
 //-----------------------------------

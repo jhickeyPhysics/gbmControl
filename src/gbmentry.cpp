@@ -57,18 +57,20 @@ SEXP gbm
     
     VEC_VEC_CATEGORIES vecSplitCodes;
 
+  	//
     int iT = 0;
     const int cTrees = Rcpp::as<int>(rcTrees);
+    const int cCatSplitsOld = Rcpp::as<int>(rcCatSplitsOld);
+    const int cTreesOld = Rcpp::as<int>(rcTreesOld);
+    const bool verbose = Rcpp::as<bool>(rfVerbose);
+    const Rcpp::NumericVector adFold(radFOld);
+
     const int cTrain = Rcpp::as<int>(rcTrain);
     const int cFeatures = Rcpp::as<int>(rcFeatures);
     const int cDepth = Rcpp::as<int>(rcDepth);
     const int cMinObsInNode = Rcpp::as<int>(rcMinObsInNode);
-    const int cCatSplitsOld = Rcpp::as<int>(rcCatSplitsOld);
-    const int cTreesOld = Rcpp::as<int>(rcTreesOld);
     const double dShrinkage = Rcpp::as<double>(rdShrinkage);
     const double dBagFraction = Rcpp::as<double>(rdBagFraction);
-    const bool verbose = Rcpp::as<bool>(rfVerbose);
-    const Rcpp::NumericVector adFold(radFOld);
     const std::string family = Rcpp::as<std::string>(rszFamily);
 
     int cNodes = 0;
