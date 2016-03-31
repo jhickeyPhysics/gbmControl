@@ -31,11 +31,18 @@ public:
 		fHasOffset(GBM_FUNC::has_value(adOffset))
 	{
 
+
+		// If you've no offset set to 0
+		if(!fHasOffset)
+		{
+			std::fill(adOffset.begin(), adOffset.begin() + adX.nrow(), 0.0);
+		}
+
+		// Set other stuff
 		bagFraction = fractionInBag;
 		totalInBag = (long) (fractionInBag * cTrain);
 		cValid = adX.nrow() - cTrain;
 		pointAtTrainSet = true;
-
 		adYPtr = adY.begin();
 		adWeightPtr = adWeight.begin();
 		adOffsetPtr = adOffset.begin();
