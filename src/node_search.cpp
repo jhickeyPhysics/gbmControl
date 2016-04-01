@@ -247,7 +247,7 @@ void CNodeSearch::Set(CNode nodeToSplit)
 
     bestSplit.ResetSplitProperties(dInitSumZ, dInitTotalW, cInitN);
     proposedSplit.ResetSplitProperties(0.0, dInitTotalW, cInitN);
-    fIsSplit = !nodeToSplit.isTerminal;
+    fIsSplit = !(nodeToSplit.splitType == none);
 
 }
 

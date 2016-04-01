@@ -26,6 +26,12 @@
 #include "buildinfo.h"
 
 
+// Forward definition for dispatch
+//class GenericNodeDispatch;
+
+// Enum used int dispatch
+enum SplitType {categorical, continuous, none};
+
 using namespace std;
 typedef vector<int> VEC_CATEGORIES;
 typedef vector<VEC_CATEGORIES> VEC_VEC_CATEGORIES;
@@ -40,7 +46,7 @@ public:
 	// Public Constructors
 	//----------------------
     CNode(double nodePrediction,
-    		double trainingWeight, long numObs, bool terminalFlag=false);
+    		double trainingWeight, long numObs);
 
 	//---------------------
 	// Public destructor
@@ -54,11 +60,7 @@ public:
     void Predict(const CDataset &data,
 			 unsigned long iRow,
 			 double &dFadj);
-    void Predict(double *adX,
-			 unsigned long cRow,
-			 unsigned long cCol,
-			 unsigned long iRow,
-			 double &dFadj);
+
     void GetVarRelativeInfluence(double *adRelInf);
     void SplitNode();
     void PrintSubtree(unsigned long cIndent);
@@ -104,8 +106,8 @@ public:
 	double dTrainW;   // total training weight in node
 	long cN; // number of training observations in node
 
-	bool isTerminal;
-	bool isContinuous;
+	// ENUM FOR CRTP visitor
+	SplitType splitType;
 
 	// VARIABLES USED IN NODE SPLITTING
 	std::vector<unsigned long> aiLeftCategory;

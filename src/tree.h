@@ -49,12 +49,6 @@ public:
 		      unsigned long nValid,
 		      double *adFadj);
     
-    void Predict(double *adX,
-		 unsigned long cRow,
-		 unsigned long cCol,
-		 unsigned long iRow,
-		 double &dFadj);
-
     void Adjust(const std::vector<unsigned long>& aiNodeAssign,
 		double *adFadj,
 		unsigned long cMinObsInNode);

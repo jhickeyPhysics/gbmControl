@@ -50,7 +50,7 @@ void CCARTTree::grow
   double dSumZ = 0.0;
   double dSumZ2 = 0.0;
   double dTotalW = 0.0;
-  
+
 #ifdef NOISY_DEBUG
   Rprintf("initial tree calcs\n");
 #endif
@@ -72,7 +72,7 @@ void CCARTTree::grow
 
   dError = dSumZ2-dSumZ*dSumZ/dTotalW;
 
-  pRootNode = new CNode(dSumZ/dTotalW, dTotalW, data.GetTotalInBag(), true);
+  pRootNode = new CNode(dSumZ/dTotalW, dTotalW, data.GetTotalInBag());
   vecpTermNodes[0] = pRootNode;
 
   // build the tree structure
@@ -132,28 +132,6 @@ void CCARTTree::PredictValid
     }
 }
 
-
-
-void CCARTTree::Predict
-(
-    double *adX,
-    unsigned long cRow,
-    unsigned long cCol,
-    unsigned long iRow,
-    double &dFadj
-)
-{
-
-	if(pRootNode)
-	{
-		pRootNode->Predict(adX,cRow,cCol,iRow,dFadj);
-		dFadj *= shrinkageConst;
-	}
-	else
-	{
-		dFadj = 0.0;
-	}
-}
 
 
 

@@ -3,12 +3,11 @@
 #include "node.h"
 
 CNode::CNode(double nodePrediction,
-		double trainingWeight, long numObs, bool terminalFlag):aiLeftCategory()
+		double trainingWeight, long numObs):aiLeftCategory()
 {
     dPrediction = nodePrediction;
     dTrainW = trainingWeight;
-    isTerminal = terminalFlag;
-    isContinuous = true;
+    splitType = none;
     cN = numObs;
 
     dSplitValue = 0.0;
@@ -19,6 +18,7 @@ CNode::CNode(double nodePrediction,
 	pLeftNode = NULL;
 	pRightNode = NULL;
 	pMissingNode = NULL;
+
 }
 
 
@@ -37,12 +37,12 @@ void CNode::Adjust
 )
 {
 	// Only adjust if node is not terminal
-	if(!isTerminal)
+	if(splitType != none)
 	{
 		pLeftNode->Adjust(cMinObsInNode);
 		pRightNode->Adjust(cMinObsInNode);
 
-		if(pMissingNode->isTerminal && (pMissingNode->cN < cMinObsInNode))
+		if((pMissingNode->splitType == none) && (pMissingNode->cN < cMinObsInNode))
 		{
 			dPrediction = ((pLeftNode->dTrainW)*(pLeftNode->dPrediction) +
 				 (pRightNode->dTrainW)*(pRightNode->dPrediction))/
@@ -73,7 +73,7 @@ void CNode::Predict
 {
 	// If node is terminal set the function adjustment to the
 	// prediction.  Else move down the tree.
-	if(isTerminal)
+	if(splitType == none)
 	{
 		dFadj = dPrediction;
 	}
@@ -97,39 +97,7 @@ void CNode::Predict
 }
 
 
-void CNode::Predict
-(
-    double *adX,
-    unsigned long cRow,
-    unsigned long cCol,
-    unsigned long iRow,
-    double &dFadj
-)
-{
-	// If node is terminal set the function adjustment to the
-	// prediction.  Else move down the tree.
-	if(isTerminal)
-	{
-		dFadj = dPrediction;
-	}
-	else
-	{
-		signed char schWhichNode = WhichNode(adX,cRow,cCol,iRow);
-		if(schWhichNode == -1)
-		{
-		  pLeftNode->Predict(adX,cRow,cCol,iRow,dFadj);
-		}
-		else if(schWhichNode == 1)
-		{
-		  pRightNode->Predict(adX,cRow,cCol,iRow,dFadj);
-		}
-		else
-		{
-		  pMissingNode->Predict(adX,cRow,cCol,iRow,dFadj);
-		}
-	}
 
-}
 
 
 void CNode::GetVarRelativeInfluence
@@ -138,7 +106,7 @@ void CNode::GetVarRelativeInfluence
 )
 {
 	// Relative influence of split variable only updated in non-terminal nodes
-	if(!isTerminal)
+	if(splitType != none)
 	{
 		adRelInf[iSplitVar] += dImprovement;
 		pLeftNode->GetVarRelativeInfluence(adRelInf);
@@ -154,7 +122,7 @@ void CNode::PrintSubtree
 {
   unsigned long i = 0;
 
-  if(this->isTerminal)
+  if(splitType == none)
   {
 	  for(i=0; i< cIndent; i++) Rprintf("  ");
 	  Rprintf("N=%f, Prediction=%f *\n",
@@ -163,7 +131,7 @@ void CNode::PrintSubtree
   }
   else
   {
-	  if(this->isContinuous)
+	  if(splitType==continuous)
 	    {
 	  	  for(i=0; i< cIndent; i++) Rprintf("  ");
 	  	    Rprintf("N=%f, Improvement=%f, Prediction=%f, NA pred=%f\n",
@@ -233,14 +201,13 @@ void CNode::SplitNode()
 	// set up a continuous split
 	if(childrenParams.SplitClass==0)
 	{
-		isTerminal = false;
 		dSplitValue = childrenParams.SplitValue;
 		iSplitVar = childrenParams.SplitVar;
+		splitType = continuous;
 	}
 	else
 	{
-		isTerminal = false;
-		isContinuous = false;
+		splitType = categorical;
 		iSplitVar = childrenParams.SplitVar;
 		aiLeftCategory.resize(1 + (ULONG)childrenParams.SplitValue);
 
@@ -251,12 +218,12 @@ void CNode::SplitNode()
 
 	dImprovement = childrenParams.ImprovedResiduals;
 	pLeftNode    = new CNode(childrenParams.LeftWeightResiduals/childrenParams.LeftTotalWeight, childrenParams.LeftTotalWeight,
-									childrenParams.LeftNumObs, true);
+									childrenParams.LeftNumObs);
 	pRightNode   = new CNode(childrenParams.RightWeightResiduals/childrenParams.RightTotalWeight,
-							childrenParams.RightTotalWeight, childrenParams.RightNumObs, true);
+							childrenParams.RightTotalWeight, childrenParams.RightNumObs);
 
 	pMissingNode = new CNode(childrenParams.MissingWeightResiduals/childrenParams.MissingTotalWeight,
-							childrenParams.MissingTotalWeight, childrenParams.MissingNumObs, true);
+							childrenParams.MissingTotalWeight, childrenParams.MissingNumObs);
 
 }
 
@@ -269,7 +236,7 @@ signed char CNode::WhichNode
     signed char ReturnValue = 0;
     double dX = data.x_value(iObs, iSplitVar);
 
-    if(isContinuous)
+    if((splitType == continuous) || (splitType == none))
     {
     	 if(!ISNA(dX))
     	    {
@@ -320,7 +287,7 @@ signed char CNode::WhichNode
     signed char ReturnValue = 0;
     double dX = adX[iSplitVar*cRow + iRow];
 
-    if(isContinuous)
+    if((splitType==continuous) || (splitType == none))
     {
     	if(!ISNA(dX))
     	    {
@@ -376,7 +343,7 @@ void CNode::TransferTreeToRList
     double dShrinkage
 )
 {
-	if(this->isTerminal)
+	if(splitType == none)
 	{
 		aiSplitVar[iNodeID] = -1;
 		adSplitPoint[iNodeID] = dShrinkage*dPrediction;
@@ -389,7 +356,7 @@ void CNode::TransferTreeToRList
 
 		iNodeID++;
 	}
-	else if(this->isContinuous)
+	else if(splitType == continuous)
 	{
 		int iThisNodeID = iNodeID;
 		aiSplitVar[iThisNodeID] = iSplitVar;
