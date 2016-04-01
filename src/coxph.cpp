@@ -123,7 +123,7 @@ double CCoxPH::Deviance
     dTotalAtRisk = 0.0; 
     for(i=0; i!=cLength; i++)
     {
-        dF = adF[i] + ((pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[i]);
+        dF = adF[i] +  pData->offset_ptr(false)[i];
         dTotalAtRisk += pData->weight_ptr()[i]*std::exp(dF);
         if(adDelta[i]==1.0)
         {

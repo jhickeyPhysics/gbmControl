@@ -48,22 +48,12 @@ void CTDist::ComputeWorkingResponse
     unsigned long i = 0;
     double dU = 0.0;
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-	  dU = pData->y_ptr()[i] - adF[i];
-	  adZ[i] = (2 * dU) / (mdNu + (dU * dU));
-        }
-    }
-    else
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
- 		    dU = pData->y_ptr()[i] - pData->offset_ptr(false)[i] - adF[i];
-			adZ[i] = (2 * dU) / (mdNu + (dU * dU));
-        }
-    }
+	for(i=0; i<pData->get_trainSize(); i++)
+	{
+		dU = pData->y_ptr()[i] - pData->offset_ptr(false)[i] - adF[i];
+		adZ[i] = (2 * dU) / (mdNu + (dU * dU));
+	}
+
 }
 
 
@@ -105,24 +95,14 @@ double CTDist::Deviance
 	   cLength = pData->GetValidSize();
 	}
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-        for(i=0; i<cLength; i++)
-        {
-			dU = pData->y_ptr()[i] - adF[i];
-			dL += pData->weight_ptr()[i] * std::log(mdNu + (dU * dU));
-            dW += pData->weight_ptr()[i];
-        }
-    }
-    else
-    {
-        for(i=0; i<cLength; i++)
-        {
-			dU = pData->y_ptr()[i] - pData->offset_ptr(false)[i] - adF[i];
-		    dL += pData->weight_ptr()[i] * std::log(mdNu + (dU * dU));
-            dW += pData->weight_ptr()[i];
-        }
-    }
+
+	for(i=0; i<cLength; i++)
+	{
+		dU = pData->y_ptr()[i] - pData->offset_ptr(false)[i] - adF[i];
+		dL += pData->weight_ptr()[i] * std::log(mdNu + (dU * dU));
+		dW += pData->weight_ptr()[i];
+	}
+
 
     // Switch back to training set if necessary
     if(isValidationSet)
@@ -161,7 +141,7 @@ void CTDist::FitBestConstant
 	    {
 	      if(pData->GetBagElem(iObs) && (pTreeComps->GetNodeAssign()[iObs] == iNode))
                 {
-		  const double dOffset = (pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[iObs];
+		  const double dOffset = pData->offset_ptr(false)[iObs];
 		  adArr.push_back(pData->y_ptr()[iObs] - dOffset - adF[iObs]);
 		  adW.push_back(pData->weight_ptr()[iObs]);
                 }
@@ -191,7 +171,7 @@ double CTDist::BagImprovement
     {
         if(!data.GetBagElem(i))
         {
-            const double dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
+            const double dF = adF[i] + data.offset_ptr(false)[i];
 	    const double dU = (data.y_ptr()[i] - dF);
 	    const double dV = (data.y_ptr()[i] - dF - shrinkage * adFadj[i]) ;
 

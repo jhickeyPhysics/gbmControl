@@ -49,7 +49,7 @@ void CBernoulli::ComputeWorkingResponse
 
   for(i=0; i<pData->get_trainSize(); i++)
   {
-    dF = adF[i] + ((pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[i]);
+    dF = adF[i] +  pData->offset_ptr(false)[i];
     dProb = 1.0/(1.0+std::exp(-dF));
 
     adZ[i] = pData->y_ptr()[i] - dProb;
@@ -71,38 +71,28 @@ double CBernoulli::InitF
     double dTemp=0.0;
     double dInitF = 0.0;
 
-    if(pData->offset_ptr(false)==NULL)
-    {
-        double dSum=0.0;
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-            dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
-            dTemp += pData->weight_ptr()[i];
-        }
-        dInitF = std::log(dSum/(dTemp-dSum));
-    }
-    else
-    {
-        // Newton method for solving for F
-        // should take about 3-6 iterations.
-        double dNum=0.0;         // numerator
-        double dDen=0.0;         // denominator
-        double dNewtonStep=1.0;  // change
-        dInitF = 0.0;
-        while(dNewtonStep > 0.0001)
-        {
-            dNum=0.0;
-            dDen=0.0;
-            for(i=0; i<pData->get_trainSize(); i++)
-            {
-                dTemp = 1.0/(1.0+std::exp(-(pData->offset_ptr(false)[i] + dInitF)));
-                dNum += pData->weight_ptr()[i]*(pData->y_ptr()[i]-dTemp);
-                dDen += pData->weight_ptr()[i]*dTemp*(1.0-dTemp);
-            }
-            dNewtonStep = dNum/dDen;
-            dInitF += dNewtonStep;
-        }
-    }
+
+
+	// Newton method for solving for F
+	// should take about 3-6 iterations.
+	double dNum=0.0;         // numerator
+	double dDen=0.0;         // denominator
+	double dNewtonStep=1.0;  // change
+	dInitF = 0.0;
+	while(dNewtonStep > 0.0001)
+	{
+		dNum=0.0;
+		dDen=0.0;
+		for(i=0; i<pData->get_trainSize(); i++)
+		{
+			dTemp = 1.0/(1.0+std::exp(-(pData->offset_ptr(false)[i] + dInitF)));
+			dNum += pData->weight_ptr()[i]*(pData->y_ptr()[i]-dTemp);
+			dDen += pData->weight_ptr()[i]*dTemp*(1.0-dTemp);
+		}
+		dNewtonStep = dNum/dDen;
+		dInitF += dNewtonStep;
+	}
+
 
     return dInitF;
 }
@@ -127,23 +117,14 @@ double CBernoulli::Deviance
 	   cLength = pData->GetValidSize();
    }
 
-   if(pData->offset_ptr(false)==NULL)
-   {
-      for(i=0; i!=cLength; i++)
-      {
-         dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]*adF[i] - std::log(1.0+std::exp(adF[i])));
-         dW += pData->weight_ptr()[i];
-      }
-   }
-   else
-   {
-      for(i=0; i!=cLength; i++)
-      {
-         dF = adF[i] + pData->offset_ptr(false)[i];
-         dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]*dF - std::log(1.0+std::exp(dF)));
-         dW += pData->weight_ptr()[i];
-      }
-   }
+
+	for(i=0; i!=cLength; i++)
+	{
+	 dF = adF[i] + pData->offset_ptr(false)[i];
+	 dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]*dF - std::log(1.0+std::exp(dF)));
+	 dW += pData->weight_ptr()[i];
+	}
+
    // Switch back to trainig set if necessary
    if(isValidationSet)
    {
@@ -238,7 +219,7 @@ double CBernoulli::BagImprovement
     {
         if(!data.GetBagElem(i))
         {
-            dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
+            dF = adF[i] +  data.offset_ptr(false)[i];
 
             if(data.y_ptr()[i]==1.0)
             {

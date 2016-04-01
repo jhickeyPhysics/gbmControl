@@ -48,7 +48,7 @@ void CPoisson::ComputeWorkingResponse
     // compute working response
     for(i=0; i < pData->get_trainSize(); i++)
     {
-        dF = adF[i] + ((pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[i]);
+        dF = adF[i] +  pData->offset_ptr(false)[i];
         adZ[i] = pData->y_ptr()[i] - std::exp(dF);
     }
 }
@@ -64,22 +64,12 @@ double CPoisson::InitF
     double dDenom = 0.0;
     unsigned long i = 0;
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-            dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
-            dDenom += pData->weight_ptr()[i];
-        }
-    }
-    else
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-            dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
-            dDenom += pData->weight_ptr()[i]*std::exp(pData->offset_ptr(false)[i]);
-        }
-    }
+
+	for(i=0; i<pData->get_trainSize(); i++)
+	{
+		dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
+		dDenom += pData->weight_ptr()[i]*std::exp(pData->offset_ptr(false)[i]);
+	}
 
     return std::log(dSum/dDenom);
 }
@@ -104,23 +94,14 @@ double CPoisson::Deviance
  	   cLength = pData->GetValidSize();
     }
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-        for(i=0; i<cLength; i++)
-        {
-            dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]*adF[i] - std::exp(adF[i]));
-            dW += pData->weight_ptr()[i];
-        }
-    }
-    else
-    {
-        for(i=0; i<cLength; i++)
-        {
-            dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]*(pData->offset_ptr(false)[i]+adF[i]) -
-                               std::exp(pData->offset_ptr(false)[i]+adF[i]));
-            dW += pData->weight_ptr()[i];
-       }
-    }
+
+	for(i=0; i<cLength; i++)
+	{
+		dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]*(pData->offset_ptr(false)[i]+adF[i]) -
+						   std::exp(pData->offset_ptr(false)[i]+adF[i]));
+		dW += pData->weight_ptr()[i];
+   }
+
 
     // Switch back to training set if necessary
     if(isValidationSet)
@@ -153,33 +134,17 @@ void CPoisson::FitBestConstant
     vecdMin.resize(cTermNodes);
     vecdMin.assign(vecdMin.size(),HUGE_VAL);
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-        for(iObs=0; iObs<pData->get_trainSize(); iObs++)
-        {
-            if(pData->GetBagElem(iObs))
-            {
-                vecdNum[pTreeComps->GetNodeAssign()[iObs]] += pData->weight_ptr()[iObs]*pData->y_ptr()[iObs];
-                vecdDen[pTreeComps->GetNodeAssign()[iObs]] += pData->weight_ptr()[iObs]*std::exp(adF[iObs]);
-            }
-            vecdMax[pTreeComps->GetNodeAssign()[iObs]] =
-               R::fmax2(adF[iObs],vecdMax[pTreeComps->GetNodeAssign()[iObs]]);
-            vecdMin[pTreeComps->GetNodeAssign()[iObs]] =
-               R::fmin2(adF[iObs],vecdMin[pTreeComps->GetNodeAssign()[iObs]]);
-        }
-    }
-    else
-    {
-        for(iObs=0; iObs<pData->get_trainSize(); iObs++)
-        {
-            if(pData->GetBagElem(iObs))
-            {
-                vecdNum[pTreeComps->GetNodeAssign()[iObs]] += pData->weight_ptr()[iObs]*pData->y_ptr()[iObs];
-                vecdDen[pTreeComps->GetNodeAssign()[iObs]] +=
-                    pData->weight_ptr()[iObs]*std::exp(pData->offset_ptr(false)[iObs]+adF[iObs]);
-            }
-        }
-    }
+
+	for(iObs=0; iObs<pData->get_trainSize(); iObs++)
+	{
+		if(pData->GetBagElem(iObs))
+		{
+			vecdNum[pTreeComps->GetNodeAssign()[iObs]] += pData->weight_ptr()[iObs]*pData->y_ptr()[iObs];
+			vecdDen[pTreeComps->GetNodeAssign()[iObs]] +=
+				pData->weight_ptr()[iObs]*std::exp(pData->offset_ptr(false)[iObs]+adF[iObs]);
+		}
+	}
+
     for(iNode=0; iNode<cTermNodes; iNode++)
     {
         if(pTreeComps->GetTermNodes()[iNode]!=NULL)
@@ -230,7 +195,7 @@ double CPoisson::BagImprovement
     {
         if(!data.GetBagElem(i))
         {
-            dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
+            dF = adF[i] + data.offset_ptr(false)[i];
 
             dReturnValue += data.weight_ptr()[i]*
                             (data.y_ptr()[i]*shrinkage*adFadj[i] -

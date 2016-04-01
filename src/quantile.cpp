@@ -43,21 +43,11 @@ void CQuantile::ComputeWorkingResponse
 )
 {
     unsigned long i = 0;
+	for(i=0; i<pData->get_trainSize(); i++)
+	{
+		adZ[i] = (pData->y_ptr()[i] > adF[i]+pData->offset_ptr(false)[i]) ? dAlpha : -(1.0-dAlpha);
+	}
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-            adZ[i] = (pData->y_ptr()[i] > adF[i]) ? dAlpha : -(1.0-dAlpha);
-        }
-    }
-    else
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-            adZ[i] = (pData->y_ptr()[i] > adF[i]+pData->offset_ptr(false)[i]) ? dAlpha : -(1.0-dAlpha);
-        }
-    }
 }
 
 
@@ -70,7 +60,7 @@ double CQuantile::InitF
     vecd.resize(pData->get_trainSize());
     for(long i=0; i< pData->get_trainSize(); i++)
     {
-        dOffset = (pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[i];
+        dOffset = pData->offset_ptr(false)[i];
         vecd[i] = pData->y_ptr()[i] - dOffset;
     }
 
@@ -97,36 +87,20 @@ double CQuantile::Deviance
  	   cLength = pData->GetValidSize();
     }
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-        for(i=0; i<cLength; i++)
-        {
-            if(pData->y_ptr()[i] > adF[i])
-            {
-                dL += pData->weight_ptr()[i]*dAlpha*(pData->y_ptr()[i] - adF[i]);
-            }
-            else
-            {
-                dL += pData->weight_ptr()[i]*(1.0-dAlpha)*(adF[i] - pData->y_ptr()[i]);
-            }
-            dW += pData->weight_ptr()[i];
-        }
-    }
-    else
-    {
-        for(i=0; i<cLength; i++)
-        {
-            if(pData->y_ptr()[i] > adF[i] + pData->offset_ptr(false)[i])
-            {
-                dL += pData->weight_ptr()[i]*dAlpha      *(pData->y_ptr()[i] - adF[i]-pData->offset_ptr(false)[i]);
-            }
-            else
-            {
-                dL += pData->weight_ptr()[i]*(1.0-dAlpha)*(adF[i]+pData->offset_ptr(false)[i] - pData->y_ptr()[i]);
-            }
-            dW += pData->weight_ptr()[i];
-        }
-    }
+
+	for(i=0; i<cLength; i++)
+	{
+		if(pData->y_ptr()[i] > adF[i] + pData->offset_ptr(false)[i])
+		{
+			dL += pData->weight_ptr()[i]*dAlpha*(pData->y_ptr()[i] - adF[i]-pData->offset_ptr(false)[i]);
+		}
+		else
+		{
+			dL += pData->weight_ptr()[i]*(1.0-dAlpha)*(adF[i]+pData->offset_ptr(false)[i] - pData->y_ptr()[i]);
+		}
+		dW += pData->weight_ptr()[i];
+	}
+
 
     // Switch back to training set if necessary
     if(isValidationSet)
@@ -196,7 +170,7 @@ double CQuantile::BagImprovement
     {
         if(!data.GetBagElem(i))
         {
-            dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
+            dF = adF[i] + data.offset_ptr(false)[i];
 
             if(data.y_ptr()[i] > dF)
             {

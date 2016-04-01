@@ -39,21 +39,13 @@ void CAdaBoost::ComputeWorkingResponse
  double *adZ
 )
 {
-  unsigned long i = 0;
-  if(pData->offset_ptr(false) == NULL)
-    {
-      for(i=0; i<pData->get_trainSize(); i++)
-        {
-	  adZ[i] = -(2*pData->y_ptr()[i]-1) * std::exp(-(2*pData->y_ptr()[i]-1)*adF[i]);
-        }
-    }
-  else
-    {
-      for(i=0; i<pData->get_trainSize(); i++)
-        {
-	  adZ[i] = -(2*pData->y_ptr()[i]-1) * std::exp(-(2*pData->y_ptr()[i]-1)*(pData->offset_ptr(false)[i]+adF[i]));
-        }
-    }
+
+
+	for(long i=0; i<pData->get_trainSize(); i++)
+	{
+		adZ[i] = -(2*pData->y_ptr()[i]-1) * std::exp(-(2*pData->y_ptr()[i]-1)*(pData->offset_ptr(false)[i]+adF[i]));
+	}
+
 
 }
 
@@ -64,38 +56,22 @@ double CAdaBoost::InitF
  const CDataset* pData
 )
 {
-    unsigned long i=0;
     double dNum = 0.0;
     double dDen = 0.0;
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-      for(i=0; i< pData->get_trainSize(); i++)
-        {
-	  if(pData->y_ptr()[i]==1.0)
-            {
-	      dNum += pData->weight_ptr()[i];
-            }
-	  else
-            {
-                dDen += pData->weight_ptr()[i];
-            }
-        }
-    }
-    else
-      {
-        for(i=0; i< pData->get_trainSize(); i++)
-        {
-	  if(pData->y_ptr()[i]==1.0)
-            {
-	      dNum += pData->weight_ptr()[i] * std::exp(-pData->offset_ptr(false)[i]);
-            }
-	  else
-            {
-	      dDen += pData->weight_ptr()[i] * std::exp(pData->offset_ptr(false)[i]);
-            }
-        }
-      }
+
+	for(long i=0; i< pData->get_trainSize(); i++)
+	{
+		if(pData->y_ptr()[i]==1.0)
+		{
+			dNum += pData->weight_ptr()[i] * std::exp(-pData->offset_ptr(false)[i]);
+		}
+		else
+		{
+			dDen += pData->weight_ptr()[i] * std::exp(pData->offset_ptr(false)[i]);
+		}
+	}
+
     
     return 0.5*std::log(dNum/dDen);
 }
@@ -120,22 +96,14 @@ double CAdaBoost::Deviance
     	cLength = pData->GetValidSize();
     }
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-        for(i=0; i!=cLength; i++)
-        {
-            dL += pData->weight_ptr()[i] * std::exp(-(2*pData->y_ptr()[i]-1)*adF[i]);
-            dW += pData->weight_ptr()[i];
-        }
-    }
-    else
-    {
-        for(i=0; i!=cLength; i++)
-        {
-            dL += pData->weight_ptr()[i] * std::exp(-(2*pData->y_ptr()[i]-1)*(pData->offset_ptr(false)[i]+adF[i]));
-            dW += pData->weight_ptr()[i];
-       }
-    }
+
+
+	for(i=0; i!=cLength; i++)
+	{
+		dL += pData->weight_ptr()[i] * std::exp(-(2*pData->y_ptr()[i]-1)*(pData->offset_ptr(false)[i]+adF[i]));
+		dW += pData->weight_ptr()[i];
+	}
+
 
     // Switch back to trainig set if necessary
    if(isValidationSet)
@@ -213,7 +181,7 @@ double CAdaBoost::BagImprovement
     {
         if(!data.GetBag()[i])
         {
-            dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
+            dF = adF[i] + data.offset_ptr(false)[i];
 
             dReturnValue += data.weight_ptr()[i]*
                 (std::exp(-(2*data.y_ptr()[i]-1)*dF) -

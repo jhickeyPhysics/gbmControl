@@ -54,7 +54,7 @@ void CGamma::ComputeWorkingResponse
 
   for(i=0; i<pData->get_trainSize(); i++)
     {
-      dF = adF[i] + ((pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[i]);
+      dF = adF[i] + pData->offset_ptr(false)[i];
       adZ[i] = pData->y_ptr()[i]*std::exp(-dF)-1.0;
     }
   
@@ -72,22 +72,13 @@ double CGamma::InitF
     double Max = +19.0;
     unsigned long i=0;
     double dInitF = 0.0;
-    if(pData->offset_ptr(false)==NULL)
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-            dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
-            dTotalWeight += pData->weight_ptr()[i];
-        }
-    }
-    else
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-	  dSum += pData->weight_ptr()[i]*pData->y_ptr()[i]*std::exp(-pData->offset_ptr(false)[i]);
-	  dTotalWeight += pData->weight_ptr()[i];
-        }
-    }
+
+	for(i=0; i<pData->get_trainSize(); i++)
+	{
+		dSum += pData->weight_ptr()[i]*pData->y_ptr()[i]*std::exp(-pData->offset_ptr(false)[i]);
+		dTotalWeight += pData->weight_ptr()[i];
+	}
+
 
     if (dSum <= 0.0) { dInitF = Min; }
     else { dInitF = std::log(dSum/dTotalWeight); }
@@ -119,7 +110,7 @@ double CGamma::Deviance
 
   for(i=0; i!=cLength; i++)
     {
-      dF = adF[i] + ((pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[i]);
+      dF = adF[i] + pData->offset_ptr(false)[i];
       dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]*std::exp(-dF) + dF);
       dW += pData->weight_ptr()[i];
     }
@@ -163,7 +154,7 @@ const CDataset* pData,
     {
       if(pData->GetBagElem(iObs))
 	{
-	  dF = adF[iObs] + ((pData->offset_ptr(false)==NULL) ? 0.0 : pData->offset_ptr(false)[iObs]);
+	  dF = adF[iObs] + pData->offset_ptr(false)[iObs];
 	  vecdNum[pTreeComps->GetNodeAssign()[iObs]] += pData->weight_ptr()[iObs]*pData->y_ptr()[iObs]*std::exp(-dF);
 	  vecdDen[pTreeComps->GetNodeAssign()[iObs]] += pData->weight_ptr()[iObs];
 	  
@@ -219,7 +210,7 @@ double CGamma::BagImprovement
 	{
 		if(!data.GetBagElem(i))
 		{
-			dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
+			dF = adF[i] +  data.offset_ptr(false)[i];
 			dReturnValue += data.weight_ptr()[i]*(data.y_ptr()[i]*std::exp(-dF)*(1.0-exp(-shrinkage*adFadj[i])) - shrinkage*adFadj[i]);
 			dW += data.weight_ptr()[i];
 		}

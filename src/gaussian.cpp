@@ -46,20 +46,12 @@ void CGaussian::ComputeWorkingResponse
     throw GBM::invalid_argument();
   }
   
-  if(pData->offset_ptr(false) == NULL)
-    {
-      for(i=0; i<pData->get_trainSize(); i++)
-        {
-	  adZ[i] = pData->y_ptr()[i] - adF[i];
-        }
-    }
-  else
-    {
-      for(i=0; i<pData->get_trainSize(); i++)
-        {
-	  adZ[i] = pData->y_ptr()[i] - pData->offset_ptr(false)[i] - adF[i];
-        }
-    }
+
+	for(i=0; i<pData->get_trainSize(); i++)
+	{
+		adZ[i] = pData->y_ptr()[i] - pData->offset_ptr(false)[i] - adF[i];
+	}
+
 }
 
 double CGaussian::InitF
@@ -72,22 +64,13 @@ double CGaussian::InitF
     unsigned long i=0;
 
     // compute the mean
-    if(pData->offset_ptr(false)==NULL)
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-            dSum += pData->weight_ptr()[i]*pData->y_ptr()[i];
-            dTotalWeight += pData->weight_ptr()[i];
-        }
-    }
-    else
-    {
-        for(i=0; i<pData->get_trainSize(); i++)
-        {
-            dSum += pData->weight_ptr()[i]*(pData->y_ptr()[i] - pData->offset_ptr(false)[i]);
-            dTotalWeight += pData->weight_ptr()[i];
-        }
-    }
+
+	for(i=0; i<pData->get_trainSize(); i++)
+	{
+		dSum += pData->weight_ptr()[i]*(pData->y_ptr()[i] - pData->offset_ptr(false)[i]);
+		dTotalWeight += pData->weight_ptr()[i];
+	}
+
 
     return dSum/dTotalWeight;
 }
@@ -111,23 +94,15 @@ double CGaussian::Deviance
     	cLength = pData->GetValidSize();
     }
 
-    if(pData->offset_ptr(false) == NULL)
-    {
-        for(i=0; i<cLength; i++)
-        {
-            dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]-adF[i])*(pData->y_ptr()[i]-adF[i]);
-            dW += pData->weight_ptr()[i];
-        }
-    }
-    else
-    {
-        for(i=0; i<cLength; i++)
-        {
-            dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]-pData->offset_ptr(false)[i]-adF[i])*
-                              (pData->y_ptr()[i]-pData->offset_ptr(false)[i]-adF[i]);
-            dW += pData->weight_ptr()[i];
-       }
-    }
+
+
+	for(i=0; i<cLength; i++)
+	{
+		dL += pData->weight_ptr()[i]*(pData->y_ptr()[i]-pData->offset_ptr(false)[i]-adF[i])*
+						  (pData->y_ptr()[i]-pData->offset_ptr(false)[i]-adF[i]);
+		dW += pData->weight_ptr()[i];
+	}
+
 
     if(isValidationSet)
     {
@@ -169,7 +144,7 @@ double CGaussian::BagImprovement
     {
         if(!data.GetBagElem(i))
         {
-            dF = adF[i] + ((data.offset_ptr(false)==NULL) ? 0.0 : data.offset_ptr(false)[i]);
+            dF = adF[i] + data.offset_ptr(false)[i];
 
             dReturnValue += data.weight_ptr()[i]*shrinkage*adFadj[i]*
                             (2.0*(data.y_ptr()[i]-dF) - shrinkage*adFadj[i]);
