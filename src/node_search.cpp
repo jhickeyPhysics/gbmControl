@@ -70,6 +70,9 @@ void CNodeSearch::IncorporateObs<false>
             proposedSplit.SplitIsCorrMonotonic(lMonotone))
         {
         	proposedSplit.NodeGradResiduals();
+			std::cout << "L Prop:" << proposedSplit.LeftWeightResiduals  << endl;
+			std::cout << "Improv Prop: " << proposedSplit.ImprovedResiduals << endl;
+			std::cout << endl;
         }
 
         // now move the new observation to the left
@@ -126,8 +129,8 @@ void CNodeSearch::GenerateAllSplits
 			  it++)
 	  {
 		  ResetForNewVar(*vecpTermNodes[iNode], *it, data.varclass(*it), proposedSplits[*it]);
-		  /*std::cout << "Var:" << *it << endl;
-		  std::cout << "Left:" << proposedSplits[*it].LeftWeightResiduals << endl;
+		  std::cout << "VAR:" << *it << endl;
+		 /* std::cout << "Left:" << proposedSplits[*it].LeftWeightResiduals << endl;
 		  std::cout << "Right:" << proposedSplits[*it].RightWeightResiduals << endl;
 		  std::cout << "Missing:" << proposedSplits[*it].MissingWeightResiduals << endl;
 		  std::cout << "SplitVal: " << proposedSplits[*it].SplitValue << endl;
@@ -164,15 +167,9 @@ void CNodeSearch::GenerateAllSplits
 		  {
 			  EvaluateCategoricalSplit(proposedSplits[*it]);
 		  }
-		  std::cout << "Var:" << *it << endl;
-		  std::cout << "Left:" << proposedSplits[*it].LeftWeightResiduals << endl;
-		  std::cout << "Right:" << proposedSplits[*it].RightWeightResiduals << endl;
-		  std::cout << "Missing:" << proposedSplits[*it].MissingWeightResiduals << endl;
-		  std::cout << "SplitVal: " << proposedSplits[*it].SplitValue << endl;
-		  std::cout << "Residuals: " << proposedSplits[*it].ImprovedResiduals << endl;
-		  std::cout << endl;
 	  }
 	  // Assign best split to node
+	  throw  GBM::failure("EXIT");
 	  AssignToNode(*vecpTermNodes[iNode]);
 	}
 
@@ -369,6 +366,5 @@ void CNodeSearch::AssignToNode(CNode& terminalNode)
 	std::cout << "Right Residuals : " << proposedSplits[1].RightWeightResiduals << endl;
 	std::cout << "Missing Residuals :" << proposedSplits[1].MissingWeightResiduals << endl;
 	std::cout << bestSplitInd << endl;
-	throw  GBM::failure();
 	terminalNode.childrenParams =  proposedSplits[bestSplitInd];
 }
