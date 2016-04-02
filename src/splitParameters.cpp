@@ -2,7 +2,7 @@
 
 SplitParams::SplitParams()
 {
-
+	SplitValue = 0.0;
 }
 
 SplitParams::~SplitParams()

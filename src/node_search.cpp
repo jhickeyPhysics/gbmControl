@@ -125,10 +125,16 @@ void CNodeSearch::GenerateAllSplits
 			  it != final;
 			  it++)
 	  {
-
 		  ResetForNewVar(*vecpTermNodes[iNode], *it, data.varclass(*it), proposedSplits[*it]);
-		  bool varIsCategorical = (bool) data.varclass(*it);
+		  /*std::cout << "Var:" << *it << endl;
+		  std::cout << "Left:" << proposedSplits[*it].LeftWeightResiduals << endl;
+		  std::cout << "Right:" << proposedSplits[*it].RightWeightResiduals << endl;
+		  std::cout << "Missing:" << proposedSplits[*it].MissingWeightResiduals << endl;
+		  std::cout << "SplitVal: " << proposedSplits[*it].SplitValue << endl;
+		  std::cout << "Residuals: " << proposedSplits[*it].ImprovedResiduals << endl;
+		  std::cout << endl;*/
 
+		  bool varIsCategorical = (bool) data.varclass(*it);
 		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
 		  {
 			  //Get Observation and add to split if needed
@@ -158,7 +164,13 @@ void CNodeSearch::GenerateAllSplits
 		  {
 			  EvaluateCategoricalSplit(proposedSplits[*it]);
 		  }
-
+		  std::cout << "Var:" << *it << endl;
+		  std::cout << "Left:" << proposedSplits[*it].LeftWeightResiduals << endl;
+		  std::cout << "Right:" << proposedSplits[*it].RightWeightResiduals << endl;
+		  std::cout << "Missing:" << proposedSplits[*it].MissingWeightResiduals << endl;
+		  std::cout << "SplitVal: " << proposedSplits[*it].SplitValue << endl;
+		  std::cout << "Residuals: " << proposedSplits[*it].ImprovedResiduals << endl;
+		  std::cout << endl;
 	  }
 	  // Assign best split to node
 	  AssignToNode(*vecpTermNodes[iNode]);
@@ -353,9 +365,10 @@ void CNodeSearch::AssignToNode(CNode& terminalNode)
 	}
 	// Wrap up variable
 	WrapUpProposedSplit(proposedSplits[bestSplitInd]);
-	std::cout << "Left Residuals : " << proposedSplits[bestSplitInd].LeftWeightResiduals << endl;
-	std::cout << "Right Residuals : " << proposedSplits[bestSplitInd].RightWeightResiduals << endl;
-	std::cout << "Missing Residuals :" << proposedSplits[bestSplitInd].MissingWeightResiduals << endl;
+	std::cout << "Left Residuals : " << proposedSplits[1].LeftWeightResiduals << endl;
+	std::cout << "Right Residuals : " << proposedSplits[1].RightWeightResiduals << endl;
+	std::cout << "Missing Residuals :" << proposedSplits[1].MissingWeightResiduals << endl;
+	std::cout << bestSplitInd << endl;
 	throw  GBM::failure();
 	terminalNode.childrenParams =  proposedSplits[bestSplitInd];
 }
