@@ -37,6 +37,7 @@ public:
 							 double splitValue = -HUGE_VAL, long variableClasses=1, long splitVar = UINT_MAX);
 	void UpdateMissingNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
 	void UpdateLeftNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
+	double GetImprovement() { return ImprovedResiduals;};
 	bool SplitIsCorrMonotonic(long specifyMonotone);
 	void NodeGradResiduals();
 	bool HasMinNumOfObs(long minObsInNode);

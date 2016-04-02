@@ -64,6 +64,7 @@ private:
     // Definition of a tree
     CNode* pRootNode;
     vector<CNode*> vecpTermNodes;
+
     const long depthOfTree;
     const double shrinkageConst;
     double dError; // total squared error before carrying out the splits

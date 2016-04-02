@@ -1,7 +1,6 @@
 //  GBM by Greg Ridgeway  Copyright (C) 2003
 
 #include "node.h"
-
 CNode::CNode(double nodePrediction,
 		double trainingWeight, long numObs):aiLeftCategory()
 {
@@ -19,8 +18,8 @@ CNode::CNode(double nodePrediction,
 	pRightNode = NULL;
 	pMissingNode = NULL;
 
-}
 
+}
 
 CNode::~CNode()
 {
@@ -201,22 +200,21 @@ void CNode::SplitNode()
 	// set up a continuous split
 	if(childrenParams.SplitClass==0)
 	{
-		dSplitValue = childrenParams.SplitValue;
-		iSplitVar = childrenParams.SplitVar;
 		splitType = continuous;
 	}
 	else
 	{
 		splitType = categorical;
-		iSplitVar = childrenParams.SplitVar;
-		aiLeftCategory.resize(1 + (ULONG)childrenParams.SplitValue);
 
-		  std::copy(childrenParams.aiBestCategory.begin(),
-					childrenParams.aiBestCategory.begin() + aiLeftCategory.size(),
-					 aiLeftCategory.begin());
 	}
 
+	iSplitVar = childrenParams.SplitVar;
+	dSplitValue = childrenParams.SplitValue;
 	dImprovement = childrenParams.ImprovedResiduals;
+	aiLeftCategory.resize(1 + (ULONG)childrenParams.SplitValue);
+			  std::copy(childrenParams.aiBestCategory.begin(),
+						childrenParams.aiBestCategory.begin() + aiLeftCategory.size(),
+						 aiLeftCategory.begin());
 	pLeftNode    = new CNode(childrenParams.LeftWeightResiduals/childrenParams.LeftTotalWeight, childrenParams.LeftTotalWeight,
 									childrenParams.LeftNumObs);
 	pRightNode   = new CNode(childrenParams.RightWeightResiduals/childrenParams.RightTotalWeight,
@@ -226,6 +224,7 @@ void CNode::SplitNode()
 							childrenParams.MissingTotalWeight, childrenParams.MissingNumObs);
 
 }
+
 
 signed char CNode::WhichNode
 (
@@ -273,58 +272,9 @@ signed char CNode::WhichNode
     	    return ReturnValue;
     }
 
-}
-
-
-signed char CNode::WhichNode
-(
-    double *adX,
-    unsigned long cRow,
-    unsigned long cCol,
-    unsigned long iRow
-)
-{
-    signed char ReturnValue = 0;
-    double dX = adX[iSplitVar*cRow + iRow];
-
-    if((splitType==continuous) || (splitType == none))
-    {
-    	if(!ISNA(dX))
-    	    {
-    	        if(dX < dSplitValue)
-    	        {
-    	            ReturnValue = -1;
-    	        }
-    	        else
-    	        {
-    	            ReturnValue = 1;
-    	        }
-    	    }
-    	    // if missing value returns 0
-
-    	    return ReturnValue;
-    }
-    else
-    {
-    	 if(!ISNA(dX))
-    	    {
-    	      if(std::find(aiLeftCategory.begin(),
-    			   aiLeftCategory.end(),
-    			   (ULONG)dX) != aiLeftCategory.end())
-    	        {
-    	            ReturnValue = -1;
-    	        }
-    	        else
-    	        {
-    	            ReturnValue = 1;
-    	        }
-    	    }
-    	    // if missing value returns 0
-
-    	    return ReturnValue;
-    }
 
 }
+
 
 void CNode::TransferTreeToRList
 (

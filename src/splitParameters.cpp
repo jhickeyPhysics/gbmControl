@@ -31,6 +31,10 @@ void SplitParams::ResetSplitProperties(double weightedResiduals, double training
 		SplitClass = variableClasses;
 
 		aiBestCategory.resize(variableClasses, 0);
+		if(variableClasses == 0)
+		{
+			aiBestCategory.resize(1, 0);
+		}
 }
 
 

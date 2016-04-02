@@ -74,7 +74,7 @@ void CTreeComps::GrowTrees(const CDataset* pData, double* adZ, const double* adF
 
 	  //Reset tree and searcher
 	  ptreeTemp->Reset();
-	  aNodeSearch.Reset();
+	  aNodeSearch.Reset(*(pData));
 
 	#ifdef NOISY_DEBUG
 	  Rprintf("grow tree\n");

@@ -25,10 +25,6 @@
 #include "splitParameters.h"
 #include "buildinfo.h"
 
-
-// Forward definition for dispatch
-//class GenericNodeDispatch;
-
 // Enum used int dispatch
 enum SplitType {categorical, continuous, none};
 
@@ -80,10 +76,6 @@ public:
 				     double dShrinkage);
 	signed char WhichNode(const CDataset &data,
 							unsigned long iObs);
-	signed char WhichNode(double *adX,
-							 unsigned long cRow,
-							 unsigned long cCol,
-							 unsigned long iRow);
 
 	//---------------------
 	// Public Variables

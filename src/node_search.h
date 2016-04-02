@@ -42,12 +42,12 @@ public:
     void IncorporateObs(double dX,
 			double dZ,
 			double dW,
-			long lMonotone);
+			long lMonotone, SplitParams& proposedSplit);
     
-    void Reset();
+    void Reset(const CDataset& data);
 
 
-
+    // Remove InitTotalW if possible
     double dInitTotalW;
     double dInitSumZ;
     unsigned long cInitN;
@@ -58,15 +58,18 @@ private:
     void ReAssignData(long splittedNodeIndex, vector<CNode*>& vecpTermNodes,
     					const CDataset& data, vector<unsigned long>& aiNodeAssign);
     void AssignToNode(CNode& terminalNode);
-	void EvaluateCategoricalSplit();
-	void WrapUpCurrentVariable();
+	void EvaluateCategoricalSplit(SplitParams& proposedSplit);
+	void GenerateAllSplitsForVar(SplitParams& storeProposedSplit);
+	void WrapUpProposedSplit(SplitParams& proposedSplit);
 	void Set(CNode nodeToSplit);
-	void ResetForNewVar(unsigned long iWhichVar,
-				long cVarClasses);
+	void ResetForNewVar(CNode nodeToSplit, unsigned long iWhichVar,
+				long cVarClasses, SplitParams& proposedSplit);
 
-    // Split Parameters
-    SplitParams proposedSplit;
+    // Split Parameters -
+    std::vector<SplitParams> proposedSplits;
 
+
+    // Clean up if possible
     bool fIsSplit;
     long cTerminalNodes;
     unsigned long cMinObsInNode;
