@@ -62,7 +62,7 @@ private:
 	void WrapUpProposedSplit(SplitParams& proposedSplit, SplitParams& bestSplit);
 	void Set(CNode nodeToSplit);
 	void ResetForNewVar(CNode nodeToSplit, unsigned long iWhichVar,
-				long cVarClasses, SplitParams& proposedSplit);
+				long cVarClasses, SplitParams& proposedSplit, SplitParams& bestSplit);
 
     // Split Parameters -
     std::vector<SplitParams> proposedSplits;

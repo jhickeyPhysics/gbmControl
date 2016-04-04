@@ -138,7 +138,7 @@ void CNodeSearch::GenerateAllSplits
 			  it != final;
 			  it++)
 	  {
-		  ResetForNewVar(*vecpTermNodes[iNode], *it, data.varclass(*it), proposedSplits[*it]);
+		  ResetForNewVar(*vecpTermNodes[iNode], *it, data.varclass(*it), proposedSplits[*it], bestSplits[*it]);
 
 		  bool varIsCategorical = (bool) data.varclass(*it);
 		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
@@ -264,7 +264,8 @@ void CNodeSearch::ResetForNewVar
 	CNode nodeToSplit,
     unsigned long iWhichVar,
     long cCurrentVarClasses,
-    SplitParams& proposedSplit
+    SplitParams& proposedSplit,
+    SplitParams& bestSplit
 )
 {
   if(fIsSplit) return;
@@ -276,6 +277,7 @@ void CNodeSearch::ResetForNewVar
   std::fill(adGroupSumZ.begin(), adGroupSumZ.begin() + cCurrentVarClasses, 0);
   std::fill(adGroupW.begin(), adGroupW.begin() + cCurrentVarClasses, 0);
   std::fill(acGroupN.begin(), acGroupN.begin() + cCurrentVarClasses, 0);
+  bestSplit.ResetSplitProperties(dInitSumZ, dInitTotalW, cInitN);
   proposedSplit.ResetSplitProperties(dInitSumZ, dInitTotalW, cInitN, proposedSplit.SplitValue,
 										cCurrentVarClasses, iWhichVar);
 
