@@ -1,16 +1,16 @@
-#include "splitParameters.h"
+#include "nodeParameters.h"
 
-SplitParams::SplitParams()
+NodeParams::NodeParams()
 {
 	SplitValue = 0.0;
 }
 
-SplitParams::~SplitParams()
+NodeParams::~NodeParams()
 {
 
 }
 
-void SplitParams::ResetSplitProperties(double weightedResiduals, double trainingWeight,
+void NodeParams::ResetSplitProperties(double weightedResiduals, double trainingWeight,
 									   long numObs, double splitValue, long variableClasses, long splitVar)
 {
 		RightWeightResiduals   = weightedResiduals;
@@ -38,7 +38,7 @@ void SplitParams::ResetSplitProperties(double weightedResiduals, double training
 }
 
 
-void SplitParams::UpdateMissingNode(double predIncrement, double trainWIncrement, long numIncrement)
+void NodeParams::UpdateMissingNode(double predIncrement, double trainWIncrement, long numIncrement)
 {
 	// Move data point from right node to missing
 	MissingWeightResiduals += predIncrement;
@@ -50,7 +50,7 @@ void SplitParams::UpdateMissingNode(double predIncrement, double trainWIncrement
 	RightNumObs -= numIncrement;
 }
 
-void SplitParams::UpdateLeftNode(double predIncrement, double trainWIncrement, long numIncrement)
+void NodeParams::UpdateLeftNode(double predIncrement, double trainWIncrement, long numIncrement)
 {
 	// Move data point from right node to left node
 	LeftWeightResiduals += predIncrement;
@@ -63,7 +63,7 @@ void SplitParams::UpdateLeftNode(double predIncrement, double trainWIncrement, l
 
 }
 
-void SplitParams::NodeGradResiduals()
+void NodeParams::NodeGradResiduals()
 {
 	// Returns weighted
 
@@ -96,13 +96,13 @@ void SplitParams::NodeGradResiduals()
 	ImprovedResiduals = dResult;
 }
 
-bool SplitParams::SplitIsCorrMonotonic(long specifyMonotone)
+bool NodeParams::SplitIsCorrMonotonic(long specifyMonotone)
 {
 	double weightedGrad = RightWeightResiduals * LeftTotalWeight- LeftWeightResiduals * RightTotalWeight;
 	return (specifyMonotone == 0 || specifyMonotone * weightedGrad > 0);
 }
 
-bool SplitParams::HasMinNumOfObs(long minObsInNode)
+bool NodeParams::HasMinNumOfObs(long minObsInNode)
 {
 	return ((LeftNumObs >= minObsInNode) &&
 				(RightNumObs >= minObsInNode));

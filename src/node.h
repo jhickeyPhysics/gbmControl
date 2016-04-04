@@ -22,7 +22,7 @@
 //------------------------------
 #include <vector>
 #include "dataset.h"
-#include "splitParameters.h"
+#include "nodeParameters.h"
 #include "buildinfo.h"
 
 // Enum used int dispatch
@@ -86,8 +86,8 @@ public:
 	CNode* pMissingNode;
 
 	// Parameters
-	SplitParams nodeParams;
-	SplitParams childrenParams;
+	NodeParams nodeParams;
+	NodeParams childrenParams;
 
 	// This nodes parameters
 	unsigned long iSplitVar;

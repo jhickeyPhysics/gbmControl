@@ -31,10 +31,10 @@
 //    int - number of groups in data
 //
 //-----------------------------------
-CTreeComps::CTreeComps(TreeParams treeConfig)
+CTreeComps::CTreeComps(TreeParams treeConfig):
+aNodeSearch(treeConfig.cFeatures, treeConfig.cMinObsInNode)
 {
 	this-> cMinObsInNode = treeConfig.cMinObsInNode;
-	aNodeSearch.Initialize(treeConfig.cMinObsInNode);
 	ptreeTemp = new CCARTTree(treeConfig.dShrinkage, treeConfig.cDepth);
 	aiNodeAssign.resize(treeConfig.cTrain);
 
@@ -74,7 +74,7 @@ void CTreeComps::GrowTrees(const CDataset* pData, double* adZ, const double* adF
 
 	  //Reset tree and searcher
 	  ptreeTemp->Reset();
-	  aNodeSearch.Reset(*(pData));
+	  aNodeSearch.Reset();
 
 	#ifdef NOISY_DEBUG
 	  Rprintf("grow tree\n");

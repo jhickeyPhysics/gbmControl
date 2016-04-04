@@ -6,17 +6,11 @@
 //------------------------------------------------------------------------------
 #include "node_search.h"
 
-CNodeSearch::CNodeSearch()
+CNodeSearch::CNodeSearch(int cFeatures, unsigned long minObs):
+variableSplitters(cFeatures, VarSplitter(minObs))
 {
-    fIsSplit = false;
     cTerminalNodes = 1;
 
-    adGroupSumZ.resize(1024);
-    adGroupW.resize(1024);
-    acGroupN.resize(1024);
-    groupdMeanAndCategory.resize(1024);
-    proposedSplits.resize(1);
-    bestSplits.resize(1);
 }
 
 
@@ -25,95 +19,9 @@ CNodeSearch::~CNodeSearch()
 }
 
 
-void CNodeSearch::Initialize
-(
-    unsigned long cMinObsInNode
-)
-{
-    this->cMinObsInNode = cMinObsInNode;
-}
-
-void CNodeSearch::Reset(const CDataset& data)
+void CNodeSearch::Reset()
 {
 	cTerminalNodes = 1;
-	proposedSplits.resize(data.get_numFeatures());
-	bestSplits.resize(data.get_numFeatures());
-}
-
-template<>
-void CNodeSearch::IncorporateObs<false>
-(
-    double dX,
-    double dZ,
-    double dW,
-    long lMonotone,
-    SplitParams& proposedSplit,
-    SplitParams& bestSplit
-)
-{
-
-    if(fIsSplit) return;
-    if(ISNA(dX))
-    {
-        proposedSplit.UpdateMissingNode(dW*dZ, dW);
-    }
-    else
-    {
-        if(dLastXValue > dX)
-        {
-        	throw GBM::failure("Observations are not in order. gbm() was unable to build an index for the design matrix. Could be a bug in gbm or an unusual data type in data.");
-        }
-
-        // Evaluate the current split
-        // the newest observation is still in the right child
-        proposedSplit.SplitValue = 0.5*(dLastXValue + dX);
-
-        if((dLastXValue != dX) &&
-            proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
-            proposedSplit.SplitIsCorrMonotonic(lMonotone))
-        {
-        	proposedSplit.NodeGradResiduals();
-
-        	if(proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
-        			(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals))
-        	{
-        		bestSplit = proposedSplit;
-        		WrapUpProposedSplit(proposedSplit, bestSplit);
-
-        	}
-
-        }
-
-        // now move the new observation to the left
-        // if another observation arrives we will evaluate this
-        proposedSplit.UpdateLeftNode(dW*dZ, dW);
-        dLastXValue = dX;
-    }
-
-}
-
-template<>
-void CNodeSearch::IncorporateObs<true>
-(
-    double dX,
-    double dZ,
-    double dW,
-    long lMonotone,
-    SplitParams& proposedSplit,
-    SplitParams& bestSplit
-)
-{
-	if(fIsSplit) return;
-	if(ISNA(dX))
-	{
-		proposedSplit.UpdateMissingNode(dW*dZ, dW);
-	}
-	else // variable is categorical, evaluates later
-	{
-		adGroupSumZ[(unsigned long)dX] += dW*dZ;
-		adGroupW[(unsigned long)dX] += dW;
-		acGroupN[(unsigned long)dX] ++;
-	}
 }
 
 void CNodeSearch::GenerateAllSplits
@@ -131,14 +39,13 @@ void CNodeSearch::GenerateAllSplits
 	// Loop over terminal nodes
 	for(long iNode = 0; iNode < cTerminalNodes; iNode++)
 	{
-	  Set(*vecpTermNodes[iNode]);
-
 	  // Loop over variables - Generate splits
 	  for(CDataset::index_vector::const_iterator it=colNumbers.begin();
 			  it != final;
 			  it++)
 	  {
-		  ResetForNewVar(*vecpTermNodes[iNode], *it, data.varclass(*it), proposedSplits[*it], bestSplits[*it]);
+		  variableSplitters[*it].SetForNode(*vecpTermNodes[iNode]);
+		  variableSplitters[*it].SetForVariable(*it, data.varclass(*it));
 
 		  bool varIsCategorical = (bool) data.varclass(*it);
 		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
@@ -148,35 +55,21 @@ void CNodeSearch::GenerateAllSplits
 			  if((aiNodeAssign[iWhichObs] == iNode) && data.GetBag()[iWhichObs])
 			  {
 				  const double dX = data.x_value(iWhichObs, *it);
-				  if(data.varclass(*it) !=0)
-				  {
-					  IncorporateObs<true>(dX,
-										adZ[iWhichObs],
-										data.weight_ptr()[iWhichObs],
-										data.monotone(*it), proposedSplits[*it], bestSplits[*it]);
-				  }
-				  else
-				  {
-					  IncorporateObs<false>(dX,
-										adZ[iWhichObs],
-										data.weight_ptr()[iWhichObs],
-										data.monotone(*it), proposedSplits[*it], bestSplits[*it]);
-				  }
-
+				  variableSplitters[*it].IncorporateObs(dX,
+									adZ[iWhichObs],
+									data.weight_ptr()[iWhichObs],
+									data.monotone(*it));
 			  }
 
 		  }
 		  if(data.varclass(*it) != 0) // evaluate if categorical split
 		  {
-			  EvaluateCategoricalSplit(proposedSplits[*it], bestSplits[*it]);
+			  variableSplitters[*it].EvaluateCategoricalSplit();
 		  }
-
-		  //WrapUpProposedSplit(proposedSplits[*it], bestSplits[*it]);
 	  }
 	  // Assign best split to node
 	  AssignToNode(*vecpTermNodes[iNode]);
 	}
-
 }
 
 
@@ -214,8 +107,6 @@ double CNodeSearch::SplitAndCalcImprovement
 		vecpTermNodes[cTerminalNodes-1] = vecpTermNodes[iBestNode]->pMissingNode;
 		vecpTermNodes[iBestNode] = vecpTermNodes[iBestNode]->pLeftNode;
 	}
-
-
 	return dBestNodeImprovement;
 }
 
@@ -246,134 +137,15 @@ void CNodeSearch::ReAssignData
 	}
 }
 
-
-
-
-void CNodeSearch::Set(CNode nodeToSplit)
-{
-    dInitSumZ = nodeToSplit.dPrediction * nodeToSplit.dTrainW;
-    dInitTotalW = nodeToSplit.dTrainW;
-    cInitN = nodeToSplit.cN;
-    fIsSplit = !(nodeToSplit.splitType == none);
-
-}
-
-
-void CNodeSearch::ResetForNewVar
-(
-	CNode nodeToSplit,
-    unsigned long iWhichVar,
-    long cCurrentVarClasses,
-    SplitParams& proposedSplit,
-    SplitParams& bestSplit
-)
-{
-  if(fIsSplit) return;
-
-  if (int(cCurrentVarClasses) > adGroupSumZ.size()) {
-    throw GBM::failure("too many variable classes");
-  }
-
-  std::fill(adGroupSumZ.begin(), adGroupSumZ.begin() + cCurrentVarClasses, 0);
-  std::fill(adGroupW.begin(), adGroupW.begin() + cCurrentVarClasses, 0);
-  std::fill(acGroupN.begin(), acGroupN.begin() + cCurrentVarClasses, 0);
-  bestSplit.ResetSplitProperties(dInitSumZ, dInitTotalW, cInitN);
-  proposedSplit.ResetSplitProperties(dInitSumZ, dInitTotalW, cInitN, proposedSplit.SplitValue,
-										cCurrentVarClasses, iWhichVar);
-
-  dLastXValue = -HUGE_VAL;
-}
-
-
-
-void CNodeSearch::WrapUpProposedSplit(SplitParams& proposedSplit, SplitParams& bestSplit)
-{
-
-	if(proposedSplit.MissingNumObs <= 0)
-	{
-		bestSplit.MissingWeightResiduals   = dInitSumZ;
-		bestSplit.MissingTotalWeight = dInitTotalW;
-		bestSplit.MissingNumObs      = 0;
-	}
-	else
-	{
-		bestSplit.MissingWeightResiduals = proposedSplit.MissingWeightResiduals;
-		bestSplit.MissingTotalWeight = proposedSplit.MissingTotalWeight;
-		bestSplit.MissingNumObs = proposedSplit.MissingNumObs;
-
-	}
-
-}
-
-
-
-void CNodeSearch::EvaluateCategoricalSplit(SplitParams& proposedSplit, SplitParams& bestSplit)
-{
-  long i=0;
-  unsigned long cFiniteMeans = 0;
-  
-  if(fIsSplit) return;
-  
-  if(proposedSplit.SplitClass == 0)
-    {
-      throw GBM::invalid_argument();
-    }
-
-  cFiniteMeans = 0;
-  for(i=0; i < proposedSplit.SplitClass; i++)
-    {
-      groupdMeanAndCategory[i].second = i;
-
-      if(adGroupW[i] != 0.0)
-      {
-    	  groupdMeanAndCategory[i].first = adGroupSumZ[i]/adGroupW[i];
-    	  cFiniteMeans++;
-      }
-      else
-      {
-    	  groupdMeanAndCategory[i].first = HUGE_VAL;
-      }
-    }
-  
-  std::sort(groupdMeanAndCategory.begin(), groupdMeanAndCategory.begin() + proposedSplit.SplitClass);
-
-
-  // if only one group has a finite mean it will not consider
-  // might be all are missing so no categories enter here
-  for(i=0; (cFiniteMeans>1) && ((ULONG)i<cFiniteMeans-1); i++)
-    {
-      proposedSplit.SplitValue = (double)i;
-      proposedSplit.UpdateLeftNode(adGroupSumZ[groupdMeanAndCategory[i].second], adGroupW[groupdMeanAndCategory[i].second],
-    		  	  	  	  	  	  acGroupN[groupdMeanAndCategory[i].second]);
-      proposedSplit.NodeGradResiduals();
-      proposedSplit.setBestCategory(groupdMeanAndCategory);
-
-      if(proposedSplit.HasMinNumOfObs(cMinObsInNode)
-    		  && (proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals))
-      {
-    	  bestSplit = proposedSplit;
-		  WrapUpProposedSplit(proposedSplit, bestSplit);
-
-      }
-
-    }
-}
-
-
-void CNodeSearch::GenerateAllSplitsForVar(SplitParams& storeProposedSplit)
-{
-
-}
-
 void CNodeSearch::AssignToNode(CNode& terminalNode)
 {
 	// Find the best split
 	long bestSplitInd = 0;
 	double bestErrImprovement = 0.0;
 	double currErrImprovement = 0.0;
-	for(long it = 0; it < bestSplits.size(); it++)
+	for(long it = 0; it < variableSplitters.size(); it++)
 	{
-		currErrImprovement = bestSplits[it].GetImprovement();
+		currErrImprovement = variableSplitters[it].GetBestImprovement();
 		if(currErrImprovement > bestErrImprovement)
 		{
 			bestErrImprovement = currErrImprovement;
@@ -382,5 +154,5 @@ void CNodeSearch::AssignToNode(CNode& terminalNode)
 	}
 
 	// Wrap up variable
-	terminalNode.childrenParams =  bestSplits[bestSplitInd];
+	terminalNode.childrenParams =  variableSplitters[bestSplitInd].GetBestSplit();
 }

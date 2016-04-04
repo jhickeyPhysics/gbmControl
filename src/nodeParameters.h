@@ -1,13 +1,13 @@
 //------------------------------------------------------------------------------
 //
-//  File:       splitParameters.h
+//  File:       nodeParameters.h
 //
 //  Description:  header  contains the parameters used to split a node
 //
 //------------------------------------------------------------------------------
 
-#ifndef __splitParameters_h__
-#define __splitParameters_h__
+#ifndef __nodeParameters_h__
+#define __nodeParameters_h__
 
 //------------------------------
 // Includes
@@ -17,18 +17,18 @@
 //------------------------------
 // Class Definition
 //------------------------------
-class SplitParams
+class NodeParams
 {
 public:
 	//----------------------
 	// Public Constructors
 	//----------------------
-	SplitParams();
+	NodeParams();
 
 	//---------------------
 	// Public destructor
 	//---------------------
-    ~SplitParams();
+    ~NodeParams();
 
 	//---------------------
 	// Public Functions
@@ -53,7 +53,7 @@ public:
 			count++;
 		}
 	};
-	SplitParams& operator=(const SplitParams rhs)
+	NodeParams& operator=(const NodeParams rhs)
 	{
 		RightWeightResiduals = rhs.RightWeightResiduals;
 		RightTotalWeight = rhs.RightTotalWeight;
@@ -105,4 +105,4 @@ public:
 
 };
 
-#endif // __splitParameters_h__
+#endif // __nodeParameters_h__

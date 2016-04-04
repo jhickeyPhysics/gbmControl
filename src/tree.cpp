@@ -7,6 +7,7 @@ CCARTTree::CCARTTree(double shrinkage, long depth):shrinkageConst(shrinkage),
 depthOfTree(depth)
 {
     pRootNode = NULL;
+    cTotalNodeCount = 1;
 
 }
 
@@ -20,6 +21,7 @@ void CCARTTree::Reset()
 {
   delete pRootNode;
   vecpTermNodes.resize(2*depthOfTree + 1, NULL);
+  cTotalNodeCount = 1;
 }
 
 
@@ -80,7 +82,6 @@ void CCARTTree::grow
   Rprintf("Building tree 1 ");
 #endif
 
-  cTotalNodeCount = 1;
   for(long cDepth=0; cDepth < depthOfTree; cDepth++)
   {
 #ifdef NOISY_DEBUG
@@ -94,7 +95,7 @@ void CCARTTree::grow
 	if(aNodeSearch.SplitAndCalcImprovement(vecpTermNodes, data, aiNodeAssign) == 0.0)
 	{
 	  break;
-	}
+	}  cTotalNodeCount = 1;
       
       // setup the new nodes and add them to the tree
       cTotalNodeCount += 3;
@@ -114,8 +115,6 @@ const long CCARTTree::GetNodeCount() const
     return cTotalNodeCount;
 }
 
-
-
 void CCARTTree::PredictValid
 (
  const CDataset &data,
@@ -131,9 +130,6 @@ void CCARTTree::PredictValid
       adFadj[i] *= shrinkageConst;
     }
 }
-
-
-
 
 void CCARTTree::Adjust
 (
