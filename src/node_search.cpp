@@ -16,6 +16,7 @@ CNodeSearch::CNodeSearch()
     acGroupN.resize(1024);
     groupdMeanAndCategory.resize(1024);
     proposedSplits.resize(1);
+    bestSplits.resize(1);
 }
 
 
@@ -36,6 +37,7 @@ void CNodeSearch::Reset(const CDataset& data)
 {
 	cTerminalNodes = 1;
 	proposedSplits.resize(data.get_numFeatures());
+	bestSplits.resize(data.get_numFeatures());
 }
 
 template<>
@@ -45,7 +47,8 @@ void CNodeSearch::IncorporateObs<false>
     double dZ,
     double dW,
     long lMonotone,
-    SplitParams& proposedSplit
+    SplitParams& proposedSplit,
+    SplitParams& bestSplit
 )
 {
 
@@ -70,9 +73,12 @@ void CNodeSearch::IncorporateObs<false>
             proposedSplit.SplitIsCorrMonotonic(lMonotone))
         {
         	proposedSplit.NodeGradResiduals();
-			std::cout << "L Prop:" << proposedSplit.LeftWeightResiduals  << endl;
-			std::cout << "Improv Prop: " << proposedSplit.ImprovedResiduals << endl;
-			std::cout << endl;
+
+        	if(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals)
+        	{
+        		bestSplit = proposedSplit;
+        	}
+
         }
 
         // now move the new observation to the left
@@ -90,7 +96,8 @@ void CNodeSearch::IncorporateObs<true>
     double dZ,
     double dW,
     long lMonotone,
-    SplitParams& proposedSplit
+    SplitParams& proposedSplit,
+    SplitParams& bestSplit
 )
 {
 	if(fIsSplit) return;
@@ -129,13 +136,6 @@ void CNodeSearch::GenerateAllSplits
 			  it++)
 	  {
 		  ResetForNewVar(*vecpTermNodes[iNode], *it, data.varclass(*it), proposedSplits[*it]);
-		  std::cout << "VAR:" << *it << endl;
-		 /* std::cout << "Left:" << proposedSplits[*it].LeftWeightResiduals << endl;
-		  std::cout << "Right:" << proposedSplits[*it].RightWeightResiduals << endl;
-		  std::cout << "Missing:" << proposedSplits[*it].MissingWeightResiduals << endl;
-		  std::cout << "SplitVal: " << proposedSplits[*it].SplitValue << endl;
-		  std::cout << "Residuals: " << proposedSplits[*it].ImprovedResiduals << endl;
-		  std::cout << endl;*/
 
 		  bool varIsCategorical = (bool) data.varclass(*it);
 		  for(long iOrderObs=0; iOrderObs < data.get_trainSize(); iOrderObs++)
@@ -150,14 +150,14 @@ void CNodeSearch::GenerateAllSplits
 					  IncorporateObs<true>(dX,
 										adZ[iWhichObs],
 										data.weight_ptr()[iWhichObs],
-										data.monotone(*it), proposedSplits[*it]);
+										data.monotone(*it), proposedSplits[*it], bestSplits[*it]);
 				  }
 				  else
 				  {
 					  IncorporateObs<false>(dX,
 										adZ[iWhichObs],
 										data.weight_ptr()[iWhichObs],
-										data.monotone(*it), proposedSplits[*it]);
+										data.monotone(*it), proposedSplits[*it], bestSplits[*it]);
 				  }
 
 			  }
@@ -165,11 +165,10 @@ void CNodeSearch::GenerateAllSplits
 		  }
 		  if(data.varclass(*it) != 0) // evaluate if categorical split
 		  {
-			  EvaluateCategoricalSplit(proposedSplits[*it]);
+			  EvaluateCategoricalSplit(proposedSplits[*it], bestSplits[*it]);
 		  }
 	  }
 	  // Assign best split to node
-	  throw  GBM::failure("EXIT");
 	  AssignToNode(*vecpTermNodes[iNode]);
 	}
 
@@ -250,8 +249,6 @@ void CNodeSearch::Set(CNode nodeToSplit)
     dInitSumZ = nodeToSplit.dPrediction * nodeToSplit.dTrainW;
     dInitTotalW = nodeToSplit.dTrainW;
     cInitN = nodeToSplit.cN;
-
-    bestSplit.ResetSplitProperties(dInitSumZ, dInitTotalW, cInitN);
     fIsSplit = !(nodeToSplit.splitType == none);
 
 }
@@ -296,7 +293,7 @@ void CNodeSearch::WrapUpProposedSplit(SplitParams& proposedSplit)
 
 
 
-void CNodeSearch::EvaluateCategoricalSplit(SplitParams& proposedSplit)
+void CNodeSearch::EvaluateCategoricalSplit(SplitParams& proposedSplit, SplitParams& bestSplit)
 {
   long i=0;
   unsigned long cFiniteMeans = 0;
@@ -336,6 +333,12 @@ void CNodeSearch::EvaluateCategoricalSplit(SplitParams& proposedSplit)
     		  	  	  	  	  	  acGroupN[groupdMeanAndCategory[i].second]);
       proposedSplit.NodeGradResiduals();
       proposedSplit.setBestCategory(groupdMeanAndCategory);
+
+      if(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals)
+      {
+    	  bestSplit = proposedSplit;
+      }
+
     }
 }
 
@@ -351,9 +354,9 @@ void CNodeSearch::AssignToNode(CNode& terminalNode)
 	long bestSplitInd = 0;
 	double bestErrImprovement = 0.0;
 	double currErrImprovement = 0.0;
-	for(long it = 0; it < proposedSplits.size(); it++)
+	for(long it = 0; it < bestSplits.size(); it++)
 	{
-		currErrImprovement = proposedSplits[it].GetImprovement();
+		currErrImprovement = bestSplits[it].GetImprovement();
 		if(currErrImprovement > bestErrImprovement)
 		{
 			bestErrImprovement = currErrImprovement;
@@ -361,10 +364,6 @@ void CNodeSearch::AssignToNode(CNode& terminalNode)
 		}
 	}
 	// Wrap up variable
-	WrapUpProposedSplit(proposedSplits[bestSplitInd]);
-	std::cout << "Left Residuals : " << proposedSplits[1].LeftWeightResiduals << endl;
-	std::cout << "Right Residuals : " << proposedSplits[1].RightWeightResiduals << endl;
-	std::cout << "Missing Residuals :" << proposedSplits[1].MissingWeightResiduals << endl;
-	std::cout << bestSplitInd << endl;
-	terminalNode.childrenParams =  proposedSplits[bestSplitInd];
+	WrapUpProposedSplit(bestSplits[bestSplitInd]);
+	terminalNode.childrenParams =  bestSplits[bestSplitInd];
 }

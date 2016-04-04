@@ -42,7 +42,7 @@ public:
     void IncorporateObs(double dX,
 			double dZ,
 			double dW,
-			long lMonotone, SplitParams& proposedSplit);
+			long lMonotone, SplitParams& proposedSplit, SplitParams& bestSplit);
     
     void Reset(const CDataset& data);
 
@@ -51,14 +51,13 @@ public:
     double dInitTotalW;
     double dInitSumZ;
     unsigned long cInitN;
-    SplitParams bestSplit;
 
 private:
     //Private methods
     void ReAssignData(long splittedNodeIndex, vector<CNode*>& vecpTermNodes,
     					const CDataset& data, vector<unsigned long>& aiNodeAssign);
     void AssignToNode(CNode& terminalNode);
-	void EvaluateCategoricalSplit(SplitParams& proposedSplit);
+	void EvaluateCategoricalSplit(SplitParams& proposedSplit, SplitParams& bestSplit);
 	void GenerateAllSplitsForVar(SplitParams& storeProposedSplit);
 	void WrapUpProposedSplit(SplitParams& proposedSplit);
 	void Set(CNode nodeToSplit);
@@ -67,6 +66,7 @@ private:
 
     // Split Parameters -
     std::vector<SplitParams> proposedSplits;
+    std::vector<SplitParams> bestSplits;
 
 
     // Clean up if possible
