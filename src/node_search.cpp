@@ -74,9 +74,12 @@ void CNodeSearch::IncorporateObs<false>
         {
         	proposedSplit.NodeGradResiduals();
 
-        	if(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals)
+        	if(proposedSplit.HasMinNumOfObs(cMinObsInNode) &&
+        			(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals))
         	{
         		bestSplit = proposedSplit;
+        		WrapUpProposedSplit(proposedSplit, bestSplit);
+
         	}
 
         }
@@ -167,6 +170,8 @@ void CNodeSearch::GenerateAllSplits
 		  {
 			  EvaluateCategoricalSplit(proposedSplits[*it], bestSplits[*it]);
 		  }
+
+		  //WrapUpProposedSplit(proposedSplits[*it], bestSplits[*it]);
 	  }
 	  // Assign best split to node
 	  AssignToNode(*vecpTermNodes[iNode]);
@@ -279,14 +284,21 @@ void CNodeSearch::ResetForNewVar
 
 
 
-void CNodeSearch::WrapUpProposedSplit(SplitParams& proposedSplit)
+void CNodeSearch::WrapUpProposedSplit(SplitParams& proposedSplit, SplitParams& bestSplit)
 {
 
 	if(proposedSplit.MissingNumObs <= 0)
 	{
-		proposedSplit.MissingWeightResiduals   = dInitSumZ;
-		proposedSplit.MissingTotalWeight = dInitTotalW;
-		proposedSplit.MissingNumObs      = 0;
+		bestSplit.MissingWeightResiduals   = dInitSumZ;
+		bestSplit.MissingTotalWeight = dInitTotalW;
+		bestSplit.MissingNumObs      = 0;
+	}
+	else
+	{
+		bestSplit.MissingWeightResiduals = proposedSplit.MissingWeightResiduals;
+		bestSplit.MissingTotalWeight = proposedSplit.MissingTotalWeight;
+		bestSplit.MissingNumObs = proposedSplit.MissingNumObs;
+
 	}
 
 }
@@ -334,9 +346,12 @@ void CNodeSearch::EvaluateCategoricalSplit(SplitParams& proposedSplit, SplitPara
       proposedSplit.NodeGradResiduals();
       proposedSplit.setBestCategory(groupdMeanAndCategory);
 
-      if(proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals)
+      if(proposedSplit.HasMinNumOfObs(cMinObsInNode)
+    		  && (proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals))
       {
     	  bestSplit = proposedSplit;
+		  WrapUpProposedSplit(proposedSplit, bestSplit);
+
       }
 
     }
@@ -363,7 +378,7 @@ void CNodeSearch::AssignToNode(CNode& terminalNode)
 			bestSplitInd = it;
 		}
 	}
+
 	// Wrap up variable
-	WrapUpProposedSplit(bestSplits[bestSplitInd]);
 	terminalNode.childrenParams =  bestSplits[bestSplitInd];
 }

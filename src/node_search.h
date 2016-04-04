@@ -59,7 +59,7 @@ private:
     void AssignToNode(CNode& terminalNode);
 	void EvaluateCategoricalSplit(SplitParams& proposedSplit, SplitParams& bestSplit);
 	void GenerateAllSplitsForVar(SplitParams& storeProposedSplit);
-	void WrapUpProposedSplit(SplitParams& proposedSplit);
+	void WrapUpProposedSplit(SplitParams& proposedSplit, SplitParams& bestSplit);
 	void Set(CNode nodeToSplit);
 	void ResetForNewVar(CNode nodeToSplit, unsigned long iWhichVar,
 				long cVarClasses, SplitParams& proposedSplit);
@@ -67,6 +67,7 @@ private:
     // Split Parameters -
     std::vector<SplitParams> proposedSplits;
     std::vector<SplitParams> bestSplits;
+    SplitParams bestSplit;
 
 
     // Clean up if possible
