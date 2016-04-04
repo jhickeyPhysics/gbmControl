@@ -46,10 +46,7 @@ private:
 	unsigned long InitNumObs;
 	NodeParams bestSplit, proposedSplit;
 
-	std::vector<double> adGroupSumZ;
-	std::vector<double> adGroupW;
-	std::vector<unsigned long> acGroupN;
-	std::vector<pair<double, int> > groupdMeanAndCategory;
+
 
 };
 #endif // __varplitter_h__

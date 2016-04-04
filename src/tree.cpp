@@ -95,12 +95,12 @@ void CCARTTree::grow
 	if(aNodeSearch.SplitAndCalcImprovement(vecpTermNodes, data, aiNodeAssign) == 0.0)
 	{
 	  break;
-	}  cTotalNodeCount = 1;
-      
-      // setup the new nodes and add them to the tree
-      cTotalNodeCount += 3;
+	}
 
-    } // end tree growing
+	// setup the new nodes and add them to the tree
+	cTotalNodeCount += 3;
+
+  } // end tree growing
 
     // DEBUG
     // Print();

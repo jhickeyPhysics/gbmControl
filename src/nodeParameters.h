@@ -37,11 +37,14 @@ public:
 							 double splitValue = -HUGE_VAL, long variableClasses=1, long splitVar = UINT_MAX);
 	void UpdateMissingNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
 	void UpdateLeftNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
+	void UpdateLeftNodeWithCat(long catIndex);
+	void IncrementCategories(unsigned long cat, double predIncrement, double trainWIncrement);
+	unsigned long SetAndReturnNumGroupMeans();
 	double GetImprovement() { return ImprovedResiduals;};
 	bool SplitIsCorrMonotonic(long specifyMonotone);
 	void NodeGradResiduals();
 	bool HasMinNumOfObs(long minObsInNode);
-	void setBestCategory(std::vector<std::pair<double, int> > groupMeanAndCat)
+	void setBestCategory()
 	{
 		int count = 0;
 		aiBestCategory.resize(groupMeanAndCat.size());
@@ -102,6 +105,12 @@ public:
 	long SplitClass; // Categorical Split Value
     std::vector<int> aiBestCategory; // Vector of levels ordering
 	double ImprovedResiduals;
+
+	// Splitting arrays for Categorical variable
+	std::vector<double> adGroupSumZ;
+	std::vector<double> adGroupW;
+	std::vector<unsigned long> acGroupN;
+	std::vector<std::pair<double, int> > groupMeanAndCat;
 
 };
 

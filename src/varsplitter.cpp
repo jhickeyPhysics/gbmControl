@@ -24,13 +24,6 @@ VarSplitter::VarSplitter(unsigned long minNumObs)
 
 	dLastXValue = -HUGE_VAL;
 	minObsInNode = minNumObs;
-
-	// Hard Code Max
-	adGroupSumZ.resize(1024);
-	adGroupW.resize(1024);
-	acGroupN.resize(1024);
-	groupdMeanAndCategory.resize(1024);
-
 }
 
 VarSplitter::~VarSplitter()
@@ -84,9 +77,7 @@ void VarSplitter::IncorporateObs
 	}
 	else // variable is categorical, evaluates later
 	{
-		adGroupSumZ[(unsigned long)dX] += dW*dZ;
-		adGroupW[(unsigned long)dX] += dW;
-		acGroupN[(unsigned long)dX] ++;
+		proposedSplit.IncrementCategories((unsigned long) dX, dW*dZ, dW);
 	}
 }
 
@@ -104,34 +95,16 @@ void VarSplitter::EvaluateCategoricalSplit()
 	  throw GBM::invalid_argument();
 	}
 
-  cFiniteMeans = 0;
-  for(i=0; i < proposedSplit.SplitClass; i++)
-    {
-      groupdMeanAndCategory[i].second = i;
-
-      if(adGroupW[i] != 0.0)
-      {
-    	  groupdMeanAndCategory[i].first = adGroupSumZ[i]/adGroupW[i];
-    	  cFiniteMeans++;
-      }
-      else
-      {
-    	  groupdMeanAndCategory[i].first = HUGE_VAL;
-      }
-    }
-
-  std::sort(groupdMeanAndCategory.begin(), groupdMeanAndCategory.begin() + proposedSplit.SplitClass);
-
+  cFiniteMeans = proposedSplit.SetAndReturnNumGroupMeans();
 
   // if only one group has a finite mean it will not consider
   // might be all are missing so no categories enter here
   for(i=0; (cFiniteMeans>1) && ((ULONG)i<cFiniteMeans-1); i++)
     {
       proposedSplit.SplitValue = (double)i;
-      proposedSplit.UpdateLeftNode(adGroupSumZ[groupdMeanAndCategory[i].second], adGroupW[groupdMeanAndCategory[i].second],
-    		  	  	  	  	  	  acGroupN[groupdMeanAndCategory[i].second]);
+      proposedSplit.UpdateLeftNodeWithCat(i);
       proposedSplit.NodeGradResiduals();
-      proposedSplit.setBestCategory(groupdMeanAndCategory);
+      proposedSplit.setBestCategory();
 
       if(proposedSplit.HasMinNumOfObs(minObsInNode)
     		  && (proposedSplit.ImprovedResiduals > bestSplit.ImprovedResiduals))
@@ -160,15 +133,6 @@ void VarSplitter::SetForVariable(unsigned long iWhichVar, long cVarClasses)
 {
 
 	if(hasBestSplit) return;
-	if (int(cVarClasses) > adGroupSumZ.size())
-	{
-	throw GBM::failure("too many variable classes");
-	}
-
-	std::fill(adGroupSumZ.begin(), adGroupSumZ.begin() + cVarClasses, 0);
-	std::fill(adGroupW.begin(), adGroupW.begin() + cVarClasses, 0);
-	std::fill(acGroupN.begin(), acGroupN.begin() + cVarClasses, 0);
-
 	bestSplit.ResetSplitProperties(InitWeightResiduals, InitTotalWeight, InitNumObs);
 	proposedSplit.ResetSplitProperties(InitWeightResiduals, InitTotalWeight, InitNumObs,
 		  proposedSplit.SplitValue,	cVarClasses, iWhichVar);
