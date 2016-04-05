@@ -73,7 +73,6 @@ void CCARTTree::grow
 	}
 
   dError = dSumZ2-dSumZ*dSumZ/dTotalW;
-
   pRootNode = new CNode(dSumZ/dTotalW, dTotalW, data.GetTotalInBag());
   vecpTermNodes[0] = pRootNode;
 

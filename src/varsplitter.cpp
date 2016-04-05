@@ -12,7 +12,7 @@
 #include "varsplitter.h"
 
 
-VarSplitter::VarSplitter(unsigned long minNumObs)
+VarSplitter::VarSplitter(unsigned long minNumObs):bestSplit(), proposedSplit()
 {
 
 	hasBestSplit = false;

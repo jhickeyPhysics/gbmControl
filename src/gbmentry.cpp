@@ -79,7 +79,7 @@ SEXP gbm
 
     // Build gbm piece-by-piece
     CGBM GBM(GBMParams);
-    
+
     // Set up the function estimate
     double dInitF = GBM.InitF();
     Rcpp::NumericMatrix tempX(radX);
@@ -114,6 +114,7 @@ SEXP gbm
         double dTrainError = 0;
         double dValidError = 0;
         double dOOBagImprove = 0;
+
         GBM.FitLearner(adF.begin(),
                       dTrainError,dValidError,dOOBagImprove);
 

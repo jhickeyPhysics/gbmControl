@@ -1,12 +1,26 @@
 #include "nodeParameters.h"
+#include "gbmexcept.h"
 
 NodeParams::NodeParams()
 {
+	RightNumObs = 0;
+	RightTotalWeight = 0.0;
+	RightWeightResiduals = 0.0;
+
+	LeftWeightResiduals   = 0.0;
+	LeftTotalWeight = 0.0;
+	LeftNumObs     = 0;
+
+	MissingWeightResiduals   = 0.0;
+	MissingTotalWeight = 0.0;
+	MissingNumObs     = 0;
+
 	SplitValue = 0.0;
-	adGroupSumZ.resize(1024, 0);
-	adGroupW.resize(1024, 0);
-	acGroupN.resize(1024, 0);
+	adGroupSumZ.resize(1024);
+	adGroupW.resize(1024);
+	acGroupN.resize(1024);
 	groupMeanAndCat.resize(1024);
+	aiBestCategory.resize(1024);
 }
 
 NodeParams::~NodeParams()
@@ -15,42 +29,35 @@ NodeParams::~NodeParams()
 }
 
 void NodeParams::ResetSplitProperties(double weightedResiduals, double trainingWeight,
-									   long numObs, double splitValue, long variableClasses, long splitVar)
+									   unsigned long numObs, double splitValue, unsigned long variableClasses, unsigned long splitVar)
 {
+
+		std::cout << splitVar << " " << splitValue << " " << variableClasses << "\n";
 		RightWeightResiduals   = weightedResiduals;
 		RightTotalWeight = trainingWeight;
 		RightNumObs     = numObs;
+
 
 		LeftWeightResiduals   = 0.0;
 		LeftTotalWeight = 0.0;
 		LeftNumObs     = 0;
 
+
 		MissingWeightResiduals   = 0.0;
 		MissingTotalWeight = 0.0;
 		MissingNumObs     = 0;
+
 
 		SplitVar = splitVar;
 		SplitValue = splitValue;
 		ImprovedResiduals = 0.0;
 		SplitClass = variableClasses;
 
-		aiBestCategory.resize(variableClasses, 0);
-		std::fill(adGroupSumZ.begin(), adGroupSumZ.begin() + variableClasses, 0);
+
+		/*std::fill(adGroupSumZ.begin(), adGroupSumZ.begin() + variableClasses, 0);
 		std::fill(adGroupW.begin(), adGroupW.begin() + variableClasses, 0);
-		std::fill(acGroupN.begin(), acGroupN.begin() + variableClasses, 0);
+		std::fill(acGroupN.begin(), acGroupN.begin() + variableClasses, 0);*/
 
-		if(variableClasses == 0)
-		{
-			aiBestCategory.resize(1, 0);
-
-		}
-		else
-		{
-			adGroupSumZ.resize(variableClasses, 0);
-			adGroupW.resize(variableClasses, 0);
-			acGroupN.resize(variableClasses, 0);
-			groupMeanAndCat.resize(variableClasses);
-		}
 }
 
 

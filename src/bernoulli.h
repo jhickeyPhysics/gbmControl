@@ -69,8 +69,6 @@ private:
     //-------------------
     // Private Variables
     //-------------------
-    vector<double> vecdNum;
-    vector<double> vecdDen;
     bool fCappedPred;
 };
 

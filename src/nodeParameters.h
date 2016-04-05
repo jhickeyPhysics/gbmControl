@@ -33,8 +33,8 @@ public:
 	//---------------------
 	// Public Functions
 	//---------------------
-	void ResetSplitProperties(double weightedResiduals, double trainingWeight, long numObs,
-							 double splitValue = -HUGE_VAL, long variableClasses=1, long splitVar = UINT_MAX);
+	void ResetSplitProperties(double weightedResiduals, double trainingWeight, unsigned long numObs,
+							 double splitValue = -HUGE_VAL, unsigned long variableClasses=1, unsigned long splitVar = UINT_MAX);
 	void UpdateMissingNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
 	void UpdateLeftNode(double predIncrement, double trainWIncrement, long numIncrement = 1);
 	void UpdateLeftNodeWithCat(long catIndex);
@@ -101,8 +101,8 @@ public:
 
 	// Splitting values
 	double SplitValue; // Continuous Split Value
-	long SplitVar; // Which feature to split on
-	long SplitClass; // Categorical Split Value
+	unsigned long SplitVar; // Which feature to split on
+	unsigned long SplitClass; // Categorical Split Value
     std::vector<int> aiBestCategory; // Vector of levels ordering
 	double ImprovedResiduals;
 
