@@ -44,7 +44,7 @@ struct TreeParams
   int cMinObsInNode;
   double dShrinkage;
   int cTrain;
-  int cFeatures;
+  int numColData;
 };
 
 //------------------------------
@@ -93,7 +93,9 @@ public:
 		treeConfig.cMinObsInNode = Rcpp::as<int>(rcMinObsInNode);
 		treeConfig.dShrinkage = Rcpp::as<double>(rdShrinkage);
 		treeConfig.cTrain = Rcpp::as<int>(rcTrain);
-		treeConfig.cFeatures = Rcpp::as<int>(rcFeatures);
+
+		Rcpp::NumericMatrix adX(radX);
+		treeConfig.numColData =  adX.ncol();
 	};
 
 

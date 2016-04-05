@@ -32,7 +32,6 @@ void NodeParams::ResetSplitProperties(double weightedResiduals, double trainingW
 									   unsigned long numObs, double splitValue, unsigned long variableClasses, unsigned long splitVar)
 {
 
-		std::cout << splitVar << " " << splitValue << " " << variableClasses << "\n";
 		RightWeightResiduals   = weightedResiduals;
 		RightTotalWeight = trainingWeight;
 		RightNumObs     = numObs;
@@ -54,9 +53,9 @@ void NodeParams::ResetSplitProperties(double weightedResiduals, double trainingW
 		SplitClass = variableClasses;
 
 
-		/*std::fill(adGroupSumZ.begin(), adGroupSumZ.begin() + variableClasses, 0);
+		std::fill(adGroupSumZ.begin(), adGroupSumZ.begin() + variableClasses, 0);
 		std::fill(adGroupW.begin(), adGroupW.begin() + variableClasses, 0);
-		std::fill(acGroupN.begin(), acGroupN.begin() + variableClasses, 0);*/
+		std::fill(acGroupN.begin(), acGroupN.begin() + variableClasses, 0);
 
 }
 

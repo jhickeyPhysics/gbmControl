@@ -6,8 +6,8 @@
 //------------------------------------------------------------------------------
 #include "node_search.h"
 
-CNodeSearch::CNodeSearch(int cFeatures, unsigned long minObs):
-variableSplitters(cFeatures, VarSplitter(minObs))
+CNodeSearch::CNodeSearch(int numColData, unsigned long minObs):
+variableSplitters(numColData, VarSplitter(minObs))
 {
     cTerminalNodes = 1;
 

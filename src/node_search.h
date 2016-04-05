@@ -30,7 +30,7 @@ class CNodeSearch
 {
 public:
 
-    CNodeSearch(int numFeatures, unsigned long minObs);
+    CNodeSearch(int numColData, unsigned long minObs);
     ~CNodeSearch();
     void GenerateAllSplits(vector<CNode*>& vecpTermNodes, const CDataset& data,
     						double* residuals, vector<unsigned long>& aiNodeAssign);
