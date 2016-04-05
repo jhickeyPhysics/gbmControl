@@ -25,7 +25,10 @@
 #include "nodeParameters.h"
 #include "buildinfo.h"
 
-// Enum used int dispatch
+//------------------------------
+// Class Forwards and Enums
+//------------------------------
+class GenericNodeStrategy;
 enum SplitType {categorical, continuous, none};
 
 using namespace std;
@@ -98,12 +101,24 @@ public:
 	double dTrainW;   // total training weight in node
 	long cN; // number of training observations in node
 
-	// ENUM FOR CRTP visitor
+	// ENUM FOR strategy
 	SplitType splitType;
 
 	// VARIABLES USED IN NODE SPLITTING
 	std::vector<unsigned long> aiLeftCategory;
     double dSplitValue;
+
+private:
+	//---------------------
+	// Private Functions
+	//---------------------
+    void SetStrategy();
+
+	//---------------------
+	// Private Variables
+	//---------------------
+    GenericNodeStrategy* nodeStrategy;
+
 };
 
 #endif // __node_h__
