@@ -150,11 +150,10 @@ void CHuberized::FitBestConstant
   double dF = 0.0;
   unsigned long iObs = 0;
   unsigned long iNode = 0;
-  vecdNum.resize(cTermNodes);
-  vecdNum.assign(vecdNum.size(),0.0);
-  vecdDen.resize(cTermNodes);
-  vecdDen.assign(vecdDen.size(),0.0);
   
+  vector<double> vecdNum(cTermNodes, 0.0);
+  vector<double> vecdDen(cTermNodes, 0.0);
+
   for(iObs=0; iObs<pData->get_trainSize(); iObs++)
     {
       if(pData->GetBagElem(iObs))

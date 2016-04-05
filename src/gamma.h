@@ -64,13 +64,6 @@ private:
     //----------------------
     CGamma(SEXP radMisc);
 
-	//-------------------
-	// Private Variables
-	//-------------------
-    vector<double> vecdNum;
-    vector<double> vecdDen;
-    vector<double> vecdMax;
-    vector<double> vecdMin;
 };
 
 #endif // __gamma_h__

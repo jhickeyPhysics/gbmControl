@@ -68,10 +68,6 @@ private:
 	//-------------------
 	// Private Variables
 	//-------------------
-    vector<double> vecdNum;
-    vector<double> vecdDen;
-    vector<double> vecdMax;
-    vector<double> vecdMin;
     double dPower;
 };
 

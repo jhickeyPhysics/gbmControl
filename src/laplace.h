@@ -71,8 +71,6 @@ private:
 	//-------------------
 	// Private Variables
 	//-------------------
-	vector<double> vecd;
-	vector<double>::iterator itMedian;
 	CLocationM mpLocM;
 };
 

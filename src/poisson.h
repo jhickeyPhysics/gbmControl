@@ -68,15 +68,6 @@ private:
     // Private Constructors
     //----------------------
     CPoisson(SEXP radMisc);
-
-
-	//-------------------
-	// Private Variables
-	//-------------------
-    vector<double> vecdNum;
-    vector<double> vecdDen;
-    vector<double> vecdMax;
-    vector<double> vecdMin;
 };
 
 #endif // __poisson_h__

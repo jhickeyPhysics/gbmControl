@@ -67,12 +67,6 @@ private:
     // Private Constructors
     //----------------------
     CHuberized(SEXP radMisc);
-
-	//-------------------
-	// Private Variables
-	//-------------------
-    vector<double> vecdNum;
-    vector<double> vecdDen;
 };
 
 #endif // __huberized_h__

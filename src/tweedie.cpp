@@ -149,16 +149,11 @@ void CTweedie::FitBestConstant
   double MaxVal = 19.0;
   double MinVal = -19.0;
   
-  vecdNum.resize(cTermNodes);
-  vecdNum.assign(vecdNum.size(),0.0);
-  vecdDen.resize(cTermNodes);
-  vecdDen.assign(vecdDen.size(),0.0);
-  
-  vecdMax.resize(cTermNodes);
-  vecdMax.assign(vecdMax.size(),-HUGE_VAL);
-  vecdMin.resize(cTermNodes);
-  vecdMin.assign(vecdMin.size(),HUGE_VAL);
-  
+  vector<double> vecdNum(cTermNodes, 0.0);
+  vector<double> vecdDen(cTermNodes, 0.0);
+  vector<double> vecdMax(cTermNodes, -HUGE_VAL);
+  vector<double> vecdMin(cTermNodes, HUGE_VAL);
+
   for(iObs=0; iObs<pData->get_trainSize(); iObs++)
     {
       if(pData->GetBagElem(iObs))
